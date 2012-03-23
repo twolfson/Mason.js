@@ -83,24 +83,73 @@ Mason.addModule = function (module) {
 
 // TODO: Mason.clone?
 
-// Proof of concept (Simple): Make a button fancier
-Mason.addModule({
-  'button': function (buttonNode) {
-    // Create the button
-    var button = document.createElement('button'),
-        childNodes = buttonNode.childNodes;
-    button.setAttribute('style', 'background: black; border: 0; color: white; box-shadow: 0px 0px 5px 5px skyblue; margin: 10px; cursor: pointer;');
+// // Proof of concept (Simple): Make a button fancier
+// Mason.addModule({
+  // 'button': function (buttonNode) {
+    // // Create the button
+    // var button = document.createElement('button'),
+        // childNodes = buttonNode.childNodes;
+    // button.setAttribute('style', 'background: black; border: 0; color: white; box-shadow: 0px 0px 5px 5px skyblue; margin: 10px; cursor: pointer;');
 
-    // If there are any children
-    if (childNodes !== undefined) {
-      button.appendChild(Mason(childNodes));
+    // // If there are any children
+    // // TODO: Give a flag in the function or a static method for this
+    // if (childNodes !== undefined) {
+      // button.appendChild(Mason(childNodes));
+    // }
+
+    // return button;
+  // }
+// });
+
+// Proof of concept (Advanced): Make a new foray of elements
+Mason.addModule({
+  'multibutton': function (buttonNode) {
+    // Collect the child nodes and their lengths
+    var childNodes = buttonNode.childNodes || [],
+        buttonNode,
+        buttonNodeChildren,
+        button,
+        buttonChildren,
+        i = 0
+        len = childNodes.length;
+
+    // If there are no children or the first child node is not a button, throw an error
+    if (len < 1 || childNodes[0].tagName !== 'button') {
+      throw new Error('multibutton requires at least 1 child button node');
     }
 
-    return button;
+    // Create a containing div for the buttons
+    var container = document.createElement('div');
+
+    // Iterate the child nodes
+    for (; i < len; i++) {
+      buttonNode = childNodes[i];
+
+      // If the child node is not a button, throw an error
+      if (buttonNode.nodeType === 'tag' && buttonNode.tagName !== 'button') {
+        throw new Error('multibutton requires that all child nodes are buttons');
+      }
+
+      // Create a button node
+      button = document.createElement('button');
+      buttonNodeChildren = buttonNode.childNodes;
+
+      // If there are child nodes
+      if (buttonNodeChildren) {
+        // Render them and append them to the button
+        buttonChildren = Mason(buttonNodeChildren)
+        button.appendChild(buttonChildren);
+      }
+
+      // Append the button node to the container
+      container.appendChild(button);
+    }
+
+    // Return the container
+    return container;
   }
 });
 
-// Proof of concept (Advanced): Make a new foray of elements
 // Proof of concept (Advanced): Add in new event triggers corresponding to the UI element
 
 // Get the insertion area
@@ -109,35 +158,29 @@ var insertArea = document.getElementById('insertArea'),
     // TODO: A plaintext HTML interpretter will come later -- maybe borrowed from another project
     htmlArr = [{
       'nodeType': 'tag',
-      'tagName': 'button',
+      'tagName': 'multibutton',
       'childNodes': [{
-        'nodeType': 'text',
-        'textContent': 'I am a button!'
+        'nodeType': 'tag', // TODO: Use real constant
+        'tagName': 'button',
+        'childNodes': [{
+          'nodeType': 'text',
+          'textContent': 'First button'
+        }]
+      }, {
+        'nodeType': 'tag',
+        'tagName': 'button',
+        'childNodes': [{
+          'nodeType': 'text',
+          'textContent': 'Second button'
+        }]
+      },{
+        'nodeType': 'tag',
+        'tagName': 'button',
+        'childNodes': [{
+          'nodeType': 'text',
+          'textContent': 'Third button'
+        }]
       }]
-      // 'menubutton': {
-        // 'childNodes': [{
-          // 'nodeType': 'tag', // TODO: Use real constant
-          // 'tagName': 'button',
-          // 'childNodes': [{
-            // 'nodeType': 'text',
-            // 'textContent': 'First button'
-          // }]
-        // }, {
-          // 'nodeType': 'tag',
-          // 'tagName': 'button',
-          // 'childNodes': [{
-            // 'nodeType': 'text',
-            // 'textContent': 'Second button'
-          // }]
-        // },{
-          // 'nodeType': 'tag',
-          // 'tagName': 'button',
-          // 'childNodes': [{
-            // 'nodeType': 'text',
-            // 'textContent': 'Third button'
-          // }]
-        // }]
-      // }
     }],
     // Render the HTML elements into a document fragment
     htmlFrag = Mason(htmlArr);
