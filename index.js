@@ -103,47 +103,85 @@ Mason.addModule = function (module) {
 
 // Proof of concept (Advanced): Make a new foray of elements
 Mason.addModule({
-  'multibutton': function (buttonNode) {
+  'dropdown': function (dropdown) {
     // Collect the child nodes and their lengths
-    var childNodes = buttonNode.childNodes || [],
-        buttonNode,
-        buttonNodeChildren,
-        button,
-        buttonChildren,
-        i = 0
+    var childNodes = dropdown.childNodes || [],
+        i,
         len = childNodes.length;
 
     // If there are no children or the first child node is not a button, throw an error
-    if (len < 1 || childNodes[0].tagName !== 'button') {
-      throw new Error('multibutton requires at least 1 child button node');
+    if (len < 2 || childNodes[0].tagName !== 'text') {
+      throw new Error('dropdown requires at least 2 child nodes, the first of which is a "text" node');
     }
 
     // Create a containing div for the buttons
-    var container = document.createElement('div');
+    var container = document.createElement('div'),
+        headRow = document.createElement('div'),
+    // Grab the first child node
+        textNode = childNodes[0],
+    // Create its default text via Mason
+        defaultText = Mason(textNode.childNodes || []);
+
+    // Style the container
+    headRow.setAttribute('style', 'padding: 0 5px; cursor: pointer;');
+    container.setAttribute('style', 'border: 1px solid black; float: left;');
+
+    // Create a 'caret' for the expand
+    var caret = document.createElement('div'),
+        caretText = document.createTextNode('v');
+    caret.appendChild(caretText);
+    caret.setAttribute('style', 'border-left: 1px solid black; margin-left: 5px; padding-left: 5px; float: right;');
+    headRow.appendChild(caret);
+
+    // Inject the default text into the container
+    headRow.appendChild(defaultText);
+    container.appendChild(headRow);
+
+    // Create a ul for the dropdown
+    var list = document.createElement('ul'),
+        listItem,
+        childNode,
+        childFrag;
+
+    // Remove default styling of the list
+    list.setAttribute('style', 'list-item-style: none; border-top: 1px solid black; padding: 0 5px; margin: 0;');
 
     // Iterate the child nodes
-    for (; i < len; i++) {
-      buttonNode = childNodes[i];
+    for (i = 1; i < len; i++) {
+      childNode = childNodes[i];
+      listItem = document.createElement('li');
 
-      // If the child node is not a button, throw an error
-      if (buttonNode.nodeType === 'tag' && buttonNode.tagName !== 'button') {
-        throw new Error('multibutton requires that all child nodes are buttons');
-      }
+      // Render the child node via Mason and append it to the list item
+      // TODO: Auto-upcast non-arrays in Mason
+      childFrag = Mason([childNode]);
+      listItem.appendChild(childFrag);
 
-      // Create a button node
-      button = document.createElement('button');
-      buttonNodeChildren = buttonNode.childNodes;
-
-      // If there are child nodes
-      if (buttonNodeChildren) {
-        // Render them and append them to the button
-        buttonChildren = Mason(buttonNodeChildren)
-        button.appendChild(buttonChildren);
-      }
-
-      // Append the button node to the container
-      container.appendChild(button);
+      // Append the list item to the list
+      list.appendChild(listItem);
     }
+
+    // Set up state for the dropdown
+    var isExpanded = false,
+        // Render function for the dropdown
+        render = function () {
+          list.style.display = isExpanded ? '' : 'none';
+        };
+
+    // When the head row is clicked on
+    // TODO: Move to .addEventListener
+    headRow.onclick = function () {
+      // Update the state
+      isExpanded = !isExpanded;
+
+      // and re-render the dropdown
+      render();
+    };
+
+    // Render the dropdown now
+    render();
+
+    // Append the list to the container
+    container.appendChild(list);
 
     // Return the container
     return container;
@@ -152,33 +190,48 @@ Mason.addModule({
 
 // Proof of concept (Advanced): Add in new event triggers corresponding to the UI element
 
+/*
+  <dropdown>
+    <text>My Dropdown</text>
+    <a href="#">First Link</a>
+    <a href="#">Second Link</a>
+    <a href="#">Third Link</a>
+  </dropdown>
+*/
 // Get the insertion area
 var insertArea = document.getElementById('insertArea'),
     // Create an array of "HTML elements" to render
     // TODO: A plaintext HTML interpretter will come later -- maybe borrowed from another project
     htmlArr = [{
       'nodeType': 'tag',
-      'tagName': 'multibutton',
+      'tagName': 'dropdown',
       'childNodes': [{
         'nodeType': 'tag', // TODO: Use real constant
-        'tagName': 'button',
+        'tagName': 'text',
         'childNodes': [{
           'nodeType': 'text',
-          'textContent': 'First button'
-        }]
-      }, {
-        'nodeType': 'tag',
-        'tagName': 'button',
-        'childNodes': [{
-          'nodeType': 'text',
-          'textContent': 'Second button'
+          'textContent': 'My Dropdown'
         }]
       },{
         'nodeType': 'tag',
-        'tagName': 'button',
+        'tagName': 'a',
         'childNodes': [{
           'nodeType': 'text',
-          'textContent': 'Third button'
+          'textContent': 'First link'
+        }]
+      }, {
+        'nodeType': 'tag',
+        'tagName': 'a',
+        'childNodes': [{
+          'nodeType': 'text',
+          'textContent': 'Second link'
+        }]
+      },{
+        'nodeType': 'tag',
+        'tagName': 'a',
+        'childNodes': [{
+          'nodeType': 'text',
+          'textContent': 'Third link'
         }]
       }]
     }],
