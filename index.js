@@ -1,11 +1,14 @@
 (function () {
 
 var ELEMENT_NODE_VAL = Node.ELEMENT_NODE,
-    TEXT_NODE_VAL = Node.TEXT_NODE;
+    TEXT_NODE_VAL = Node.TEXT_NODE,
+    objToString = Object.prototype.toString,
+    getObjType = function (item) {
+      return objToString.call(item);
+    };
 
 /**
  * Mason function that takes arrays of HTML objects and converts them into HTMLElements
- // TODO: Support upcast of object to object[]
  * @param {Object|Object[]} htmlArr Array of HTML objects
  * @param {Number} htmlArr[i].nodeType Numeric constant representing nodeType
  * @param {String} [htmlArr[i].nodeValue] If the nodeType is a text node, this will be the text returned
@@ -14,6 +17,11 @@ var ELEMENT_NODE_VAL = Node.ELEMENT_NODE,
  * @param {Object[]} [htmlArr[i].childNodes] If the nodeType is a tag and not a module, these will be the children nodes to append to this node
  */
 function Mason(htmlArr) {
+  // If the htmlArr is not an array, upcast it as one
+  if (getObjType(htmlArr) !== '[object Array]') {
+    htmlArr = [htmlArr];
+  }
+
   // Create a document fragment (collection of HTMLElements) to return
   var retFrag = document.createDocumentFragment(),
       node,
@@ -196,27 +204,10 @@ Mason.appendChildren = function (elt, node) {
   }
 };
 
-// // Proof of concept (Simple): Make a button fancier
-// Mason.addModuleBatch({
-  // 'button': function (buttonNode) {
-    // // Create the button
-    // var button = document.createElement('button'),
-        // childNodes = buttonNode.childNodes;
-    // button.setAttribute('style', 'background: black; border: 0; color: white; box-shadow: 0px 0px 5px 5px skyblue; margin: 10px; cursor: pointer;');
-
-    // // If there are any children
-    // // TODO: Give a flag in the function or a static method for this
-    // if (childNodes !== undefined) {
-      // button.appendChild(Mason(childNodes));
-    // }
-
-    // return button;
-  // }
-// });
-
 /**
  * DOM normalizer for event bindings
- * TODO: JSDoc
+ * @param {HTMLElement} elt Element to normalize for
+ * @returns {Object<DOMNormalizer>} DOMNormalizer object with elt as the element to normalize for
  */
 function DOMNormalizer(elt) {
   this.elt = elt;
@@ -345,7 +336,7 @@ Mason.addModuleBatch({
     // Override the textNode's type to a span
     textNode.nodeName = 'span';
     // Create its default text via Mason
-    var defaultText = Mason([textNode]);
+    var defaultText = Mason(textNode);
 
     // Style the container
     headRow.setAttribute('style', 'padding: 0 5px; cursor: pointer;');
@@ -377,8 +368,7 @@ Mason.addModuleBatch({
       listItem = document.createElement('li');
 
       // Render the child node via Mason and append it to the list item
-      // TODO: Auto-upcast non-arrays in Mason
-      childFrag = Mason([childNode]);
+      childFrag = Mason(childNode);
       listItem.appendChild(childFrag);
 
       // Append the list item to the list
