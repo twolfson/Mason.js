@@ -1,5 +1,4 @@
 (function () {
-
 /**
  * Mason function that takes arrays of HTML objects and converts them into HTMLElements
  // TODO: Support upcast of object to object[]
@@ -18,10 +17,6 @@ function Mason(htmlArr) {
       nodeType,
       tagName,
       elt,
-      attributes,
-      attribute,
-      childNodes,
-      childFrag,
       i = 0,
       len = htmlArr.length,
       modules = Mason.modules;
@@ -37,7 +32,7 @@ function Mason(htmlArr) {
         tagName = node.tagName;
 
         // If the tagName is in the map of modules
-        if (modules.hasOwnProperty(tagName)) {
+        if (Mason.useModules && modules.hasOwnProperty(tagName)) {
           // Render it via that method
           elt = modules[tagName](node);
         } else {
@@ -45,24 +40,10 @@ function Mason(htmlArr) {
           elt = document.createElement(tagName);
 
           // Set any attributes if available
-          attributes = node.attributes;
-          if (attributes !== undefined) {
-            for (attributeName in attributes) {
-              if (attributes.hasOwnProperty(attributeName)) {
-                elt.setAttribute(attributeName, attributes[attributeName]);
-              }
-            }
-          }
+          Mason.setAttributes(elt, node);
 
-          // If it has any children
-          childNodes = node.childNodes;
-          if (childNodes !== undefined) {
-            // Render the child nodes
-            childFrag = Mason(childNodes);
-
-            // and append them to this node
-            elt.appendChild(childFrag);
-          }
+          // Create and append any children if available
+          Mason.appendChildren(elt, node);
         }
         break;
       case 'text':
@@ -83,7 +64,6 @@ function Mason(htmlArr) {
 Mason.modules = {};
 
 // Boolean for whether Mason should or should not use modules
-// TODO: Hook up this being used to Mason
 Mason.useModules = true;
 
 /**
@@ -105,13 +85,14 @@ Mason.addModule = function (name, fn) {
  * @param {String} name Name of the module to remove from Mason
  * @returns {Function} Returns Mason
  */
-Mason.removeModule = function (name) {
-  // Remove the module from Mason
-  delete Mason.modules[name];
+// TODO: Write a test for this before enabling
+// Mason.removeModule = function (name) {
+  // // Remove the module from Mason
+  // delete Mason.modules[name];
 
-  // Return Mason for a fluent interface
-  return Mason;
-};
+  // // Return Mason for a fluent interface
+  // return Mason;
+// };
 
 /**
  * Batch add module method for Mason
@@ -138,19 +119,20 @@ Mason.addModuleBatch = function (module) {
  * @param {Object} module Object containing modules that should be removed as keys
  * @returns {Function} Returns Mason
  */
-Mason.removeModuleBatch = function (module) {
-  // Iterate the keys in the module
-  var key;
-  for (key in module) {
-    if (module.hasOwnProperty(key)) {
-      // Remove each module from Mason
-      Mason.removeModule(key);
-    }
-  }
+// TODO: Write a test for this before enabling
+// Mason.removeModuleBatch = function (module) {
+  // // Iterate the keys in the module
+  // var key;
+  // for (key in module) {
+    // if (module.hasOwnProperty(key)) {
+      // // Remove each module from Mason
+      // Mason.removeModule(key);
+    // }
+  // }
 
-  // Return Mason for a fluent interface
-  return Mason;
-};
+  // // Return Mason for a fluent interface
+  // return Mason;
+// };
 
 /**
  * Method that enables modules for Mason
@@ -178,13 +160,32 @@ Mason.disableModules = function () {
  * @param {String} node.attributes.* Key value pair of attribute to set on the object
  */
 Mason.setAttributes = function (elt, node) {
-  var attributes = node.attributes || node;
+  var attributes = node.attributes || node,
+      attributeName;
   if (attributes !== undefined) {
     for (attributeName in attributes) {
       if (attributes.hasOwnProperty(attributeName)) {
         elt.setAttribute(attributeName, attributes[attributeName]);
       }
     }
+  }
+};
+
+/**
+ * Static method to create and append child nodes from an HTML object onto an element
+ * @param {HTMLElement} elt Element to set attributes on
+ * @param {Object} node HTML object to set attributes from.
+ * @param {Object[]} node.childNodes Array of HTML objects to render and append to the element. If not specified, node falls back as childNodes
+ */
+Mason.appendChildren = function (elt, node) {
+  var childNodes = node.childNodes || node,
+      childFrag;
+  if (childNodes !== undefined) {
+    // Render the child nodes
+    childFrag = Mason(childNodes);
+
+    // and append them to this node
+    elt.appendChild(childFrag);
   }
 };
 
@@ -302,7 +303,7 @@ DOMNormalizer.prototype = (function () {
     // TODO: Test me
     triggerHandler = function (evtName) {
       var event = DOMNormalizer.makeEvent();
-      this.elt.fireEvent(eventName, event);
+      this.elt.fireEvent(evtName, event);
     };
   }
 
@@ -383,11 +384,11 @@ Mason.addModuleBatch({
         render = function () {
           list.style.display = isExpanded ? '' : 'none';
         },
+        $headRow = new DOMNormalizer(headRow),
         $dropdown = new DOMNormalizer(container);
 
     // When the head row is clicked on
-    // TODO: Move to .addEventListener
-    headRow.onclick = function (e) {
+    $headRow.on('click', function (e) {
       // Update the state
       isExpanded = !isExpanded;
 
@@ -396,7 +397,7 @@ Mason.addModuleBatch({
 
       // Fire the expand/collapsed event
       $dropdown.trigger(isExpanded ? 'expand' : 'collapse');
-    };
+    });
 
     // Render the dropdown now
     render();
