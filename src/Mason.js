@@ -1,3 +1,4 @@
+// TODO: Reorganize Mason methods
 (function (name, definition) {
   var define = window.define,
       exports = window.exports,
@@ -12,7 +13,8 @@
 }('Mason', (function () {
 var ELEMENT_NODE_VAL = Node.ELEMENT_NODE,
     TEXT_NODE_VAL = Node.TEXT_NODE,
-    DOCUMENT_NODE_VAL = Node.TEXT_NODE;
+    DOCUMENT_NODE_VAL = Node.DOCUMENT_NODE,
+    DOCUMENT_FRAG_VAL = Node.DOCUMENT_FRAGMENT_NODE;
 
 /**
  * Mason function that takes arrays of HTML objects and converts them into HTMLElements
@@ -24,14 +26,15 @@ var ELEMENT_NODE_VAL = Node.ELEMENT_NODE,
  * @param {Object[]} [htmlArr[i].childNodes] If the nodeType is a tag and not a module, these will be the children nodes to append to this node
  */
 function Mason(htmlArr) {
+  var nodeType = htmlArr.nodeType;
   // If the input is a string
   if (typeof htmlArr === 'string') {
     // Parse it and grab the childNodes
     htmlArr = Mason.parseXML(htmlArr).childNodes;
-  } else if (htmlArr.nodeType !== undefined) {
+  } else if (nodeType !== undefined) {
   // Otherwise, if the htmlArr has a node type
-    // and it is not a document node, upcast it as an array
-    if (htmlArr.nodeType !== DOCUMENT_NODE_VAL) {
+    // and it is not a document or document fragment node, upcast it as an array
+    if (nodeType !== DOCUMENT_NODE_VAL && nodeType !== DOCUMENT_FRAG_VAL) {
       htmlArr = [htmlArr];
     } else {
     // Otherwise, use the childNodes as the input
@@ -42,7 +45,6 @@ function Mason(htmlArr) {
   // Create a document fragment (collection of HTMLElements) to return
   var retFrag = document.createDocumentFragment(),
       node,
-      nodeType,
       nodeName,
       elt,
       i = 0,
@@ -269,6 +271,45 @@ Mason.mergeNode = function (baseNode, nodeChanges) {
   }
 
   return retObj;
+};
+
+/**
+ * Node replacement utility
+ * @param {Node} newNode Node to replace origNode with
+ * @param {Node} origNode Node to be replaced
+ */
+Mason.replaceNode = function (newNode, origNode) {
+  var parentNode = origNode.parentNode;
+  parentNode.replaceChild(newNode, origNode);
+};
+
+/**
+ * Method to initiate and replace any 'script[type="text/Mason"]' tags in the page
+ */
+Mason.masonScriptType = /^text\/Mason/i;
+Mason.processPage = function () {
+  // Get all scripts from the page
+  var pageScripts = document.getElementsByTagName('script') || [],
+  // Copy over all scripts into an array instead of using an active DOM collection
+      scripts = [].slice.call(pageScripts),
+      script,
+      i = 0,
+      len = scripts.length,
+      typeRegexp = Mason.masonScriptType,
+      htmlString,
+      htmlFrag;
+  
+  // Iterate the scripts
+  for (; i < len; i++) {
+    script = scripts[i];
+    
+    // If the type matches text/Mason, process it
+    if (script.type.match(typeRegexp)) {
+      htmlString = script.innerHTML;
+      htmlFrag = Mason(htmlString);
+      Mason.replaceNode(htmlFrag, script);
+    }
+  }
 };
 
 return Mason;
