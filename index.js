@@ -101,7 +101,84 @@ Mason.addModule = function (module) {
   // }
 // });
 
+/**
+ * DOM normalizer for event bindings
+ * TODO: JSDoc
+ */
+function DOMNormalizer(elt) {
+  this.elt = elt;
+}
+var objToString = Object.prototype.toString,
+    getType = function (item) {
+      var objType = objToString.call(item),
+          typeArr = objType.match(/^\[object (.*)\]$/),
+          type;
+
+      // If the typeArr matched properly (not sure why it wouldn't)
+      if (typeArr && typeArr.length >= 2) {
+        type = typeArr[1];
+      } else {
+      // Otherwise, do a normal typeof
+        type = typeof item;
+      }
+
+      return type;
+    };
+DOMNormalizer.prototype = (function () {
+  // Determine what are the available event listener's
+  var div = document.createElement('div'),
+      onHandler = function (evtName, fn) {
+        this.elt[evtName] = fn;
+      },
+      offHandler = function (evtName) {
+        this.elt[evtName] = null;
+      },
+      // TODO: STOP AND JUST ALLOW FOR evtOptions with SMART fallbacks 
+      triggerHandler = function (evtName, baseEvent, evtOptions) {
+        // Fallback evtOptions
+        evtOptions = evtOptions || {};
+
+        // Create an event based off of the baseEvent
+        var eventType = evtOptions.type;
+
+        // If there was no type specified and we have a baseEvent
+        if (!eventType && baseEvent) {
+          eventType = getType(baseEvent);
+
+          // If the event type is 'Event', correct to 'HTMLEvent'
+          if (eventType === 'Event') {
+            eventType = 'HTMLEvents';
+          } else {
+          // Otherwise, add the 's' to all other event constructors
+            eventType += 's';
+          }
+        } else {
+          // Otherwise, fallback to HTMLEvents
+          eventType = 'HTMLEvents';
+        }
+
+        event = document.createEvent(eventType);
+
+        // Init the event with the same parameters
+        // TODO: Handle lack of baseEvent case as well as evtOptions
+        // event.initEvent(eventType, baseEvent.bubbles, baseEvent.cancealable);
+        // this.elt
+      };
+
+  // TODO: Test addEventListener, attachEvent
+  // TODO: Test removeEventListener, detachEvent
+  // TODO: Test triggerEventListener, fireEvent
+
+  return {
+    'on': onHandler,
+    'off': offHandler,
+    'trigger': triggerHandler
+  };
+}());
+
+
 // Proof of concept (Advanced): Make a new foray of elements
+// Proof of concept (Advanced): Add in new event triggers corresponding to the UI element
 Mason.addModule({
   'dropdown': function (dropdown) {
     // Collect the child nodes and their lengths
@@ -165,16 +242,20 @@ Mason.addModule({
         // Render function for the dropdown
         render = function () {
           list.style.display = isExpanded ? '' : 'none';
-        };
+        },
+        $dropdown = new DOMNormalizer(container);
 
     // When the head row is clicked on
     // TODO: Move to .addEventListener
-    headRow.onclick = function () {
+    headRow.onclick = function (e) {
       // Update the state
       isExpanded = !isExpanded;
 
       // and re-render the dropdown
       render();
+
+      // Fire the expand/collapsed event
+      $dropdown.trigger('expand', e);
     };
 
     // Render the dropdown now
@@ -188,7 +269,6 @@ Mason.addModule({
   }
 });
 
-// Proof of concept (Advanced): Add in new event triggers corresponding to the UI element
 
 /*
   <dropdown>
