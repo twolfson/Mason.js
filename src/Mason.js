@@ -1,4 +1,15 @@
-(function () {
+(function (name, definition) {
+  var define = window.define,
+      exports = window.exports,
+      that = this || window;
+  if (typeof define === 'function') {
+    define(definition);
+  } else if (typeof window.exports !== 'undefined') {
+    exports[name] = definition;
+  } else {
+    that[name] = definition;
+  }
+}('Mason', (function () {
 var ELEMENT_NODE_VAL = Node.ELEMENT_NODE,
     TEXT_NODE_VAL = Node.TEXT_NODE,
     DOCUMENT_NODE_VAL = Node.TEXT_NODE;
@@ -17,14 +28,14 @@ function Mason(htmlArr) {
   if (typeof htmlArr === 'string') {
     // Parse it and grab the childNodes
     htmlArr = Mason.parseXML(htmlArr).childNodes;
-  } else if (htmlArr.length === undefined) {
-  // Otherwise, if the htmlArr is not an array
-    // If the htmlArr is a document node, use the childNodes as the input
-    if (htmlArr.nodeType === DOCUMENT_NODE_VAL) {
-      htmlArr = htmlArr.childNodes;
-    } else {
-    // Otherwise, upcast it as an array
+  } else if (htmlArr.nodeType !== undefined) {
+  // Otherwise, if the htmlArr has a node type
+    // and it is not a document node, upcast it as an array
+    if (htmlArr.nodeType !== DOCUMENT_NODE_VAL) {
       htmlArr = [htmlArr];
+    } else {
+    // Otherwise, use the childNodes as the input
+      htmlArr = htmlArr.childNodes;
     }
   }
 
@@ -240,234 +251,25 @@ Mason.parseXML = function (data) {
 }
 
 /**
- * DOM normalizer for event bindings
- * @param {HTMLElement} elt Element to normalize for
- * @returns {Object<DOMNormalizer>} DOMNormalizer object with elt as the element to normalize for
+ * Shallow merge utility for Mason (object extension utility -- not application specific)
+ * @param {Object} baseNode Base node to copy from
+ * @param {Object} nodeChanges Changes to apply to the node
+ * @returns {Object} Object with baseNode properties overriden with nodeChanges properties
  */
-function DOMNormalizer(elt) {
-  this.elt = elt;
-}
+Mason.mergeNode = function (baseNode, nodeChanges) {
+  var retObj = {},
+      key;
 
-/**
- * Static method for making events
- * @param {Object} options Options to specify with respect to the event
- * @param {String} [options.eventType='HTMLEvents'] Type of event to create
- */
-DOMNormalizer.makeEvent = (function () {
-  var createEvent = document.createEvent || document.createEventObject || function () { return {}; };
-  return function (options) {
-    // Fallback options
-    options = options || {};
-
-    // Grab the event type and create the event
-    var eventType = options.eventType || 'HTMLEvents',
-        // TODO: Test IE createEventObject
-        event = createEvent.call(document, eventType);
-
-    // Return the created event
-    return event;
-  };
-}());
-
-DOMNormalizer.prototype = (function () {
-  // Determine what are the available event listener's
-  var div = document.createElement('div'),
-      onHandler = function (evtName, fn) {
-        this.elt['on' + evtName] = fn;
-      },
-      offHandler = function (evtName) {
-        this.elt['on' + evtName] = null;
-      },
-      triggerHandler = function (evtName) {
-        // Create and init an event to trigger
-        // TODO: Robustify init for Mouse and UIEvents
-        var event = DOMNormalizer.makeEvent();
-        event.initEvent(evtName, true, true);
-
-        // Fire the event on the element
-        var elt = this.elt,
-            method = elt['on' + evtName];
-
-        // If there is a method, trigger the event on the object
-        if (method) {
-          method.call(elt, event);
-        }
-      };
-
-  // If there is an addEventListener handler
-  if (div.addEventListener) {
-    // Override onHandler
-    onHandler = function (evtName, fn) {
-      this.elt.addEventListener(evtName, fn, false);
-    };
-  } else if (div.attachEvent) {
-  // Otherwise, if there is an attachEvent handler
-    // Override onHandler
-    onHandler = function (evtName, fn) {
-      this.elt.attachEvent('on' + evtName, fn);
-    };
+  for (key in baseNode) {
+    retObj[key] = baseNode[key];
   }
 
-  // If there is an removeEventListener handler
-  if (div.removeEventListener) {
-    // Override offHandler
-    offHandler = function (evtName, fn) {
-      this.elt.removeEventListener(evtName, fn, false);
-    };
-  } else if (div.detachEvent) {
-  // Otherwise, if there is an detachEvent handler
-    // Override offHandler
-    offHandler = function (evtName, fn) {
-      this.elt.detachEvent('on' + evtName, fn);
-    };
+  for (key in nodeChanges) {
+    retObj[key] = nodeChanges[key];
   }
 
-  // If there is an dispatchEvent handler
-  if (div.dispatchEvent) {
-    // Override triggerHandler
-    triggerHandler = function (evtName) {
-      var event = DOMNormalizer.makeEvent();
-      event.initEvent(evtName, true, true);
-      this.elt.dispatchEvent(event);
-    };
-  } else if (div.fireEvent) {
-  // Otherwise, if there is an fireEvent handler
-    // Override triggerHandler
-    // TODO: Test me
-    triggerHandler = function (evtName) {
-      var event = DOMNormalizer.makeEvent();
-      this.elt.fireEvent(evtName, event);
-    };
-  }
+  return retObj;
+};
 
-  return {
-    'on': onHandler,
-    'off': offHandler,
-    'trigger': triggerHandler
-  };
-}());
-
-
-// Proof of concept (Advanced): Make a new foray of elements
-// Proof of concept (Advanced): Add in new event triggers corresponding to the UI element
-Mason.addModuleBatch({
-  'dropdown': function (dropdown) {
-    // Collect the child nodes and their lengths
-    var childNodes = dropdown.childNodes || [],
-        i,
-        len = childNodes.length;
-
-    // If there are no children or the first child node is not a button, throw an error
-    if (len < 2 || childNodes[0].nodeName !== 'text') {
-      throw new Error('dropdown requires at least 2 child nodes, the first of which is a "text" node');
-    }
-
-    // Create a containing div for the buttons
-    var container = document.createElement('div'),
-        headRow = document.createElement('div'),
-    // Grab the first child node
-        textNode = childNodes[0];
-
-    // Override the textNode's type to a span
-    textNode.nodeName = 'span';
-    // Create its default text via Mason
-    var defaultText = Mason(textNode);
-
-    // Style the container
-    headRow.setAttribute('style', 'padding: 0 5px; cursor: pointer;');
-    container.setAttribute('style', 'border: 1px solid black; float: left;');
-
-    // Create a 'caret' for the expand
-    var caret = document.createElement('div'),
-        caretText = document.createTextNode('v');
-    caret.appendChild(caretText);
-    caret.setAttribute('style', 'border-left: 1px solid black; margin-left: 5px; padding-left: 5px; float: right;');
-    headRow.appendChild(caret);
-
-    // Inject the default text into the container
-    headRow.appendChild(defaultText);
-    container.appendChild(headRow);
-
-    // Create a ul for the dropdown
-    var list = document.createElement('ul'),
-        listItem,
-        childNode,
-        childFrag;
-
-    // Remove default styling of the list
-    list.setAttribute('style', 'list-item-style: none; border-top: 1px solid black; padding: 0 5px; margin: 0;');
-
-    // Iterate the child nodes
-    for (i = 1; i < len; i++) {
-      childNode = childNodes[i];
-      listItem = document.createElement('li');
-
-      // Render the child node via Mason and append it to the list item
-      childFrag = Mason(childNode);
-      listItem.appendChild(childFrag);
-
-      // Append the list item to the list
-      list.appendChild(listItem);
-    }
-
-    // Set up state for the dropdown
-    var isExpanded = false,
-        // Render function for the dropdown
-        render = function () {
-          list.style.display = isExpanded ? '' : 'none';
-        },
-        $headRow = new DOMNormalizer(headRow),
-        $dropdown = new DOMNormalizer(container);
-
-    // When the head row is clicked on
-    $headRow.on('click', function (e) {
-      // Update the state
-      isExpanded = !isExpanded;
-
-      // and re-render the dropdown
-      render();
-
-      // Fire the expand/collapsed event
-      $dropdown.trigger(isExpanded ? 'expand' : 'collapse');
-    });
-
-    // Render the dropdown now
-    render();
-
-    // Set any attributes for the container
-    Mason.setAttributes(container, dropdown);
-
-    // Append the list to the container
-    container.appendChild(list);
-
-    // Return the container
-    return container;
-  }
-});
-
-/*
-  <dropdown id="dropdown">
-    <text style="color: red; font-weight: bold;">My Dropdown</text>
-    <a href="#first">First Link</a>
-    <a href="#second">Second Link</a>
-    <a href="#third">Third Link</a>
-  </dropdown>
-*/
-// Get the insertion area
-var insertArea = document.getElementById('insertArea'),
-    htmlString = '<dropdown id="dropdown"><text style="color: red; font-weight: bold;">My Dropdown</text><a href="#first">First Link</a><a href="#second">Second Link</a><a href="#third">Third Link</a></dropdown>',
-    // Render the HTML string into a document fragment
-    htmlFrag = Mason(htmlString);
-// Append the fragment
-insertArea.appendChild(htmlFrag);
-
-// Listen for expand events
-var dropdown = document.getElementById('dropdown'),
-    $dropdown = new DOMNormalizer(dropdown);
-$dropdown.on('expand', function (e) {
-  console.log('expand');
-});
-$dropdown.on('collapse', function (e) {
-  console.log('collapse');
-});
-}());
+return Mason;
+}())));
