@@ -1,5 +1,16 @@
 (function () {
-// TODO: Rename this to MasonFactory and move the static methods as prototypal methods
+
+/**
+ * Mason function that takes arrays of HTML objects and converts them into HTMLElements
+ // TODO: Support upcast of object to object[]
+ * @param {Object|Object[]} htmlArr Array of HTML objects
+ // TODO: Support Number instead of current String system
+ * @param {Number} htmlArr[i].nodeType Numeric constant representing nodeType
+ * @param {String} [htmlArr[i].textContent] If the nodeType is a text node, this will be the text returned
+ * @param {String} [htmlArr[i].tagName] If the nodeType is a tag, this will be the tag created. If the tag is a module, it will be created there
+ * @param {Object} [htmlArr[i].attributes] If the nodeType is a tag and not a module, these will be the attributes to apply to the node
+ * @param {Object[]} [htmlArr[i].childNodes] If the nodeType is a tag and not a module, these will be the children nodes to append to this node
+ */
 function Mason(htmlArr) {
   // Create a document fragment (collection of HTMLElements) to return
   var retFrag = document.createDocumentFragment(),
@@ -25,7 +36,7 @@ function Mason(htmlArr) {
       case 'tag':
         tagName = node.tagName;
 
-        // TODO: If the tagName is in the map of modules
+        // If the tagName is in the map of modules
         if (modules.hasOwnProperty(tagName)) {
           // Render it via that method
           elt = modules[tagName](node);
@@ -71,29 +82,93 @@ function Mason(htmlArr) {
 // Static properties/methods for Mason
 Mason.modules = {};
 
-// TODO: Accept objects via addModules 'sugar' method
+// Boolean for whether Mason should or should not use modules
+// TODO: Hook up this being used to Mason
+Mason.useModules = true;
+
 /**
  * Add module method for Mason
+ * @param {String} name Name of the module to set up for Mason
+ * @param {Function} fn Function that will render a document fragment/HTMLElement
+ * @returns {Function} Returns Mason
+ */
+Mason.addModule = function (name, fn) {
+  // Set up the module on Mason
+  Mason.modules[name] = fn;
+
+  // Return Mason for a fluent interface
+  return Mason;
+};
+
+/**
+ * Remove module method for Mason
+ * @param {String} name Name of the module to remove from Mason
+ * @returns {Function} Returns Mason
+ */
+Mason.removeModule = function (name) {
+  // Remove the module from Mason
+  delete Mason.modules[name];
+
+  // Return Mason for a fluent interface
+  return Mason;
+};
+
+/**
+ * Batch add module method for Mason
  * @param {Object} module Object containing key value pairs of tags and their respective functions
  * @param {Function} module.* Function that will render a document fragment/HTMLElement. The key that this is stored under will affect what tags it renders to.
+ * @returns {Function} Returns Mason
  */
-Mason.addModule = function (module) {
+Mason.addModuleBatch = function (module) {
   // Iterate the keys in the module
-  var modules = Mason.modules,
-      key;
+  var key;
   for (key in module) {
     if (module.hasOwnProperty(key)) {
       // Set each function to the static modules property (overloads pre-existing methods)
-      modules[key] = module[key];
+      Mason.addModule(key, module[key]);
     }
   }
 
-  // TODO: Return this for a fluent interface
+  // Return Mason for a fluent interface
+  return Mason;
 };
 
-// TODO: Mason.removeModule
+/**
+ * Batch remove module method for Mason
+ * @param {Object} module Object containing modules that should be removed as keys
+ * @returns {Function} Returns Mason
+ */
+Mason.removeModuleBatch = function (module) {
+  // Iterate the keys in the module
+  var key;
+  for (key in module) {
+    if (module.hasOwnProperty(key)) {
+      // Remove each module from Mason
+      Mason.removeModule(key);
+    }
+  }
 
-// TODO: Mason.clone?
+  // Return Mason for a fluent interface
+  return Mason;
+};
+
+/**
+ * Method that enables modules for Mason
+ * @returns {Function} Returns Mason
+ */
+Mason.enableModules = function () {
+  Mason.useModules = true;
+  return Mason;
+};
+
+/**
+ * Method that disabled modules for Mason
+ * @returns {Function} Returns Mason
+ */
+Mason.disableModules = function () {
+  Mason.useModules = false;
+  return Mason;
+};
 
 /**
  * Static method to set attributes from an HTML object onto an element
@@ -114,7 +189,7 @@ Mason.setAttributes = function (elt, node) {
 };
 
 // // Proof of concept (Simple): Make a button fancier
-// Mason.addModule({
+// Mason.addModuleBatch({
   // 'button': function (buttonNode) {
     // // Create the button
     // var button = document.createElement('button'),
@@ -241,7 +316,7 @@ DOMNormalizer.prototype = (function () {
 
 // Proof of concept (Advanced): Make a new foray of elements
 // Proof of concept (Advanced): Add in new event triggers corresponding to the UI element
-Mason.addModule({
+Mason.addModuleBatch({
   'dropdown': function (dropdown) {
     // Collect the child nodes and their lengths
     var childNodes = dropdown.childNodes || [],
@@ -325,7 +400,7 @@ Mason.addModule({
 
     // Render the dropdown now
     render();
-    
+
     // Set any attributes for the container
     Mason.setAttributes(container, dropdown);
 
