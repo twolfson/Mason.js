@@ -108,66 +108,98 @@ Mason.addModule = function (module) {
 function DOMNormalizer(elt) {
   this.elt = elt;
 }
-var objToString = Object.prototype.toString,
-    getType = function (item) {
-      var objType = objToString.call(item),
-          typeArr = objType.match(/^\[object (.*)\]$/),
-          type;
 
-      // If the typeArr matched properly (not sure why it wouldn't)
-      if (typeArr && typeArr.length >= 2) {
-        type = typeArr[1];
-      } else {
-      // Otherwise, do a normal typeof
-        type = typeof item;
-      }
+/**
+ * Static method for making events
+ * @param {Object} options Options to specify with respect to the event
+ * @param {String} [options.eventType='HTMLEvents'] Type of event to create
+ */
+DOMNormalizer.makeEvent = (function () {
+  var createEvent = document.createEvent || document.createEventObject || function () { return {}; };
+  return function (options) {
+    // Fallback options
+    options = options || {};
 
-      return type;
-    };
+    // Grab the event type and create the event
+    var eventType = options.eventType || 'HTMLEvents',
+        // TODO: Test IE createEventObject
+        event = createEvent.call(document, eventType);
+
+    // Return the created event
+    return event;
+  };
+}());
+
 DOMNormalizer.prototype = (function () {
   // Determine what are the available event listener's
   var div = document.createElement('div'),
       onHandler = function (evtName, fn) {
-        this.elt[evtName] = fn;
+        this.elt['on' + evtName] = fn;
       },
       offHandler = function (evtName) {
-        this.elt[evtName] = null;
+        this.elt['on' + evtName] = null;
       },
-      // TODO: STOP AND JUST ALLOW FOR evtOptions with SMART fallbacks 
-      triggerHandler = function (evtName, baseEvent, evtOptions) {
-        // Fallback evtOptions
-        evtOptions = evtOptions || {};
+      triggerHandler = function (evtName) {
+        // Create and init an event to trigger
+        // TODO: Robustify init for Mouse and UIEvents
+        var event = DOMNormalizer.makeEvent();
+        event.initEvent(evtName, true, true);
 
-        // Create an event based off of the baseEvent
-        var eventType = evtOptions.type;
+        // Fire the event on the element
+        var elt = this.elt,
+            method = elt['on' + evtName];
 
-        // If there was no type specified and we have a baseEvent
-        if (!eventType && baseEvent) {
-          eventType = getType(baseEvent);
-
-          // If the event type is 'Event', correct to 'HTMLEvent'
-          if (eventType === 'Event') {
-            eventType = 'HTMLEvents';
-          } else {
-          // Otherwise, add the 's' to all other event constructors
-            eventType += 's';
-          }
-        } else {
-          // Otherwise, fallback to HTMLEvents
-          eventType = 'HTMLEvents';
+        // If there is a method, trigger the event on the object
+        if (method) {
+          method.call(elt, event);
         }
-
-        event = document.createEvent(eventType);
-
-        // Init the event with the same parameters
-        // TODO: Handle lack of baseEvent case as well as evtOptions
-        // event.initEvent(eventType, baseEvent.bubbles, baseEvent.cancealable);
-        // this.elt
       };
 
-  // TODO: Test addEventListener, attachEvent
-  // TODO: Test removeEventListener, detachEvent
-  // TODO: Test triggerEventListener, fireEvent
+  // If there is an addEventListener handler
+  if (div.addEventListener) {
+    // Override onHandler
+    onHandler = function (evtName, fn) {
+      this.elt.addEventListener(evtName, fn, false);
+    };
+  } else if (div.attachEvent) {
+  // Otherwise, if there is an attachEvent handler
+    // Override onHandler
+    onHandler = function (evtName, fn) {
+      this.elt.attachEvent('on' + evtName, fn);
+    };
+  }
+
+  // If there is an removeEventListener handler
+  if (div.removeEventListener) {
+    // Override offHandler
+    offHandler = function (evtName, fn) {
+      this.elt.removeEventListener(evtName, fn, false);
+    };
+  } else if (div.detachEvent) {
+  // Otherwise, if there is an detachEvent handler
+    // Override offHandler
+    offHandler = function (evtName, fn) {
+      this.elt.detachEvent('on' + evtName, fn);
+    };
+  }
+
+  // If there is an dispatchEvent handler
+  if (div.dispatchEvent) {
+    // Override triggerHandler
+    triggerHandler = function (evtName) {
+      var event = DOMNormalizer.makeEvent();
+      event.initEvent(evtName, true, true);
+      this.elt.dispatchEvent(event);
+    };
+  } else if (div.fireEvent) {
+  // Otherwise, if there is an fireEvent handler
+    // Override triggerHandler
+    // TODO: Test me
+    triggerHandler = function (evtName) {
+      var event = DOMNormalizer.makeEvent();
+      this.elt.fireEvent(eventName, event);
+    };
+  }
 
   return {
     'on': onHandler,
@@ -255,7 +287,7 @@ Mason.addModule({
       render();
 
       // Fire the expand/collapsed event
-      $dropdown.trigger('expand', e);
+      $dropdown.trigger(isExpanded ? 'expand' : 'collapse');
     };
 
     // Render the dropdown now
@@ -319,7 +351,16 @@ var insertArea = document.getElementById('insertArea'),
     htmlFrag = Mason(htmlArr);
 
 // Append the fragment
-// TODO: onexpand bindings, onclick binding for menu button as a whole [triggers will be set up by Mason]
-// TODO: These triggers and such will automatically be done with the modules that have been mixed in to Mason
 insertArea.appendChild(htmlFrag);
+
+// Listen for expand events
+// TODO: Use id attribute to select
+var dropdown = insertArea.childNodes[0],
+    $dropdown = new DOMNormalizer(dropdown);
+$dropdown.on('expand', function (e) {
+  console.log('expand');
+});
+$dropdown.on('collapse', function (e) {
+  console.log('collapse');
+});
 }());
