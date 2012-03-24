@@ -7,6 +7,8 @@ function Mason(htmlArr) {
       nodeType,
       tagName,
       elt,
+      attributes,
+      attribute,
       childNodes,
       childFrag,
       i = 0,
@@ -30,6 +32,16 @@ function Mason(htmlArr) {
         } else {
         // Otherwise, create the element of the type
           elt = document.createElement(tagName);
+
+          // Set any attributes if available
+          attributes = node.attributes;
+          if (attributes !== undefined) {
+            for (attributeName in attributes) {
+              if (attributes.hasOwnProperty(attributeName)) {
+                elt.setAttribute(attributeName, attributes[attributeName]);
+              }
+            }
+          }
 
           // If it has any children
           childNodes = node.childNodes;
@@ -82,6 +94,24 @@ Mason.addModule = function (module) {
 // TODO: Mason.removeModule
 
 // TODO: Mason.clone?
+
+/**
+ * Static method to set attributes from an HTML object onto an element
+ * @param {HTMLElement} elt Element to set attributes on
+ * @param {Object} node HTML object to set attributes from.
+ * @param {Object} node.attributes Object of key-value pairs of attributes to set. If not specified, node becomes promoted to attributes itself
+ * @param {String} node.attributes.* Key value pair of attribute to set on the object
+ */
+Mason.setAttributes = function (elt, node) {
+  var attributes = node.attributes || node;
+  if (attributes !== undefined) {
+    for (attributeName in attributes) {
+      if (attributes.hasOwnProperty(attributeName)) {
+        elt.setAttribute(attributeName, attributes[attributeName]);
+      }
+    }
+  }
+};
 
 // // Proof of concept (Simple): Make a button fancier
 // Mason.addModule({
@@ -227,9 +257,12 @@ Mason.addModule({
     var container = document.createElement('div'),
         headRow = document.createElement('div'),
     // Grab the first child node
-        textNode = childNodes[0],
+        textNode = childNodes[0];
+
+    // Override the textNode's type to a span
+    textNode.tagName = 'span';
     // Create its default text via Mason
-        defaultText = Mason(textNode.childNodes || []);
+    var defaultText = Mason([textNode]);
 
     // Style the container
     headRow.setAttribute('style', 'padding: 0 5px; cursor: pointer;');
@@ -292,6 +325,9 @@ Mason.addModule({
 
     // Render the dropdown now
     render();
+    
+    // Set any attributes for the container
+    Mason.setAttributes(container, dropdown);
 
     // Append the list to the container
     container.appendChild(list);
@@ -303,11 +339,11 @@ Mason.addModule({
 
 
 /*
-  <dropdown>
-    <text>My Dropdown</text>
-    <a href="#">First Link</a>
-    <a href="#">Second Link</a>
-    <a href="#">Third Link</a>
+  <dropdown id="dropdown">
+    <text style="color: red; font-weight: bold;">My Dropdown</text>
+    <a href="#first">First Link</a>
+    <a href="#second">Second Link</a>
+    <a href="#third">Third Link</a>
   </dropdown>
 */
 // Get the insertion area
@@ -317,9 +353,15 @@ var insertArea = document.getElementById('insertArea'),
     htmlArr = [{
       'nodeType': 'tag',
       'tagName': 'dropdown',
+      'attributes': {
+        'id': 'dropdown'
+      },
       'childNodes': [{
         'nodeType': 'tag', // TODO: Use real constant
         'tagName': 'text',
+        'attributes': {
+          'style': 'color: red; font-weight: bold;'
+        },
         'childNodes': [{
           'nodeType': 'text',
           'textContent': 'My Dropdown'
@@ -327,6 +369,9 @@ var insertArea = document.getElementById('insertArea'),
       },{
         'nodeType': 'tag',
         'tagName': 'a',
+        'attributes': {
+          'href': '#first'
+        },
         'childNodes': [{
           'nodeType': 'text',
           'textContent': 'First link'
@@ -334,6 +379,9 @@ var insertArea = document.getElementById('insertArea'),
       }, {
         'nodeType': 'tag',
         'tagName': 'a',
+        'attributes': {
+          'href': '#second'
+        },
         'childNodes': [{
           'nodeType': 'text',
           'textContent': 'Second link'
@@ -341,6 +389,9 @@ var insertArea = document.getElementById('insertArea'),
       },{
         'nodeType': 'tag',
         'tagName': 'a',
+        'attributes': {
+          'href': '#third'
+        },
         'childNodes': [{
           'nodeType': 'text',
           'textContent': 'Third link'
@@ -354,8 +405,7 @@ var insertArea = document.getElementById('insertArea'),
 insertArea.appendChild(htmlFrag);
 
 // Listen for expand events
-// TODO: Use id attribute to select
-var dropdown = insertArea.childNodes[0],
+var dropdown = document.getElementById('dropdown'),
     $dropdown = new DOMNormalizer(dropdown);
 $dropdown.on('expand', function (e) {
   console.log('expand');
