@@ -1,12 +1,15 @@
 (function () {
+
+var ELEMENT_NODE_VAL = Node.ELEMENT_NODE,
+    TEXT_NODE_VAL = Node.TEXT_NODE;
+
 /**
  * Mason function that takes arrays of HTML objects and converts them into HTMLElements
  // TODO: Support upcast of object to object[]
  * @param {Object|Object[]} htmlArr Array of HTML objects
- // TODO: Support Number instead of current String system
  * @param {Number} htmlArr[i].nodeType Numeric constant representing nodeType
- * @param {String} [htmlArr[i].textContent] If the nodeType is a text node, this will be the text returned
- * @param {String} [htmlArr[i].tagName] If the nodeType is a tag, this will be the tag created. If the tag is a module, it will be created there
+ * @param {String} [htmlArr[i].nodeValue] If the nodeType is a text node, this will be the text returned
+ * @param {String} [htmlArr[i].nodeName] If the nodeType is a tag, this will be the tag created. If the tag is a module, it will be created there
  * @param {Object} [htmlArr[i].attributes] If the nodeType is a tag and not a module, these will be the attributes to apply to the node
  * @param {Object[]} [htmlArr[i].childNodes] If the nodeType is a tag and not a module, these will be the children nodes to append to this node
  */
@@ -15,7 +18,7 @@ function Mason(htmlArr) {
   var retFrag = document.createDocumentFragment(),
       node,
       nodeType,
-      tagName,
+      nodeName,
       elt,
       i = 0,
       len = htmlArr.length,
@@ -28,16 +31,16 @@ function Mason(htmlArr) {
 
     // Based on the type of the node
     switch (nodeType) {
-      case 'tag':
-        tagName = node.tagName;
+      case ELEMENT_NODE_VAL:
+        nodeName = node.nodeName;
 
-        // If the tagName is in the map of modules
-        if (Mason.useModules && modules.hasOwnProperty(tagName)) {
+        // If the nodeName is in the map of modules
+        if (Mason.useModules && modules.hasOwnProperty(nodeName)) {
           // Render it via that method
-          elt = modules[tagName](node);
+          elt = modules[nodeName](node);
         } else {
         // Otherwise, create the element of the type
-          elt = document.createElement(tagName);
+          elt = document.createElement(nodeName);
 
           // Set any attributes if available
           Mason.setAttributes(elt, node);
@@ -46,14 +49,18 @@ function Mason(htmlArr) {
           Mason.appendChildren(elt, node);
         }
         break;
-      case 'text':
+      case TEXT_NODE_VAL:
         // Create a text node
-        elt = document.createTextNode(node.textContent);
+        elt = document.createTextNode(node.nodeValue);
         break;
+      default:
+        elt = null;
     }
 
     // Append the element to the collection
-    retFrag.appendChild(elt);
+    if (elt) {
+      retFrag.appendChild(elt);
+    }
   }
 
   // Return the rendered fragment
@@ -325,7 +332,7 @@ Mason.addModuleBatch({
         len = childNodes.length;
 
     // If there are no children or the first child node is not a button, throw an error
-    if (len < 2 || childNodes[0].tagName !== 'text') {
+    if (len < 2 || childNodes[0].nodeName !== 'text') {
       throw new Error('dropdown requires at least 2 child nodes, the first of which is a "text" node');
     }
 
@@ -336,7 +343,7 @@ Mason.addModuleBatch({
         textNode = childNodes[0];
 
     // Override the textNode's type to a span
-    textNode.tagName = 'span';
+    textNode.nodeName = 'span';
     // Create its default text via Mason
     var defaultText = Mason([textNode]);
 
@@ -427,50 +434,50 @@ var insertArea = document.getElementById('insertArea'),
     // Create an array of "HTML elements" to render
     // TODO: A plaintext HTML interpretter will come later -- maybe borrowed from another project
     htmlArr = [{
-      'nodeType': 'tag',
-      'tagName': 'dropdown',
+      'nodeType': Node.ELEMENT_NODE,
+      'nodeName': 'dropdown',
       'attributes': {
         'id': 'dropdown'
       },
       'childNodes': [{
-        'nodeType': 'tag', // TODO: Use real constant
-        'tagName': 'text',
+        'nodeType': Node.ELEMENT_NODE,
+        'nodeName': 'text',
         'attributes': {
           'style': 'color: red; font-weight: bold;'
         },
         'childNodes': [{
-          'nodeType': 'text',
-          'textContent': 'My Dropdown'
+          'nodeType': Node.TEXT_NODE,
+          'nodeValue': 'My Dropdown'
         }]
       },{
-        'nodeType': 'tag',
-        'tagName': 'a',
+        'nodeType': Node.ELEMENT_NODE,
+        'nodeName': 'a',
         'attributes': {
           'href': '#first'
         },
         'childNodes': [{
-          'nodeType': 'text',
-          'textContent': 'First link'
+          'nodeType': Node.TEXT_NODE,
+          'nodeValue': 'First link'
         }]
       }, {
-        'nodeType': 'tag',
-        'tagName': 'a',
+        'nodeType': Node.ELEMENT_NODE,
+        'nodeName': 'a',
         'attributes': {
           'href': '#second'
         },
         'childNodes': [{
-          'nodeType': 'text',
-          'textContent': 'Second link'
+          'nodeType': Node.TEXT_NODE,
+          'nodeValue': 'Second link'
         }]
       },{
-        'nodeType': 'tag',
-        'tagName': 'a',
+        'nodeType': Node.ELEMENT_NODE,
+        'nodeName': 'a',
         'attributes': {
           'href': '#third'
         },
         'childNodes': [{
-          'nodeType': 'text',
-          'textContent': 'Third link'
+          'nodeType': Node.TEXT_NODE,
+          'nodeValue': 'Third link'
         }]
       }]
     }],
