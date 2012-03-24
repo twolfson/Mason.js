@@ -1,4 +1,10 @@
 {
+  'Mason': {
+    'can parse an XML string': '',
+    'can parse an HTML fragment': '',
+    'can parse an array of HTMLNodes/Objects': '',
+    'can parse an HTMLNode/Object': '',
+  },
   'if a method doesnt exist': {
     'should gracefully degrade to normal': ''
   },

@@ -1,15 +1,11 @@
 (function () {
-
 var ELEMENT_NODE_VAL = Node.ELEMENT_NODE,
     TEXT_NODE_VAL = Node.TEXT_NODE,
-    objToString = Object.prototype.toString,
-    getObjType = function (item) {
-      return objToString.call(item);
-    };
+    DOCUMENT_NODE_VAL = Node.TEXT_NODE;
 
 /**
  * Mason function that takes arrays of HTML objects and converts them into HTMLElements
- * @param {Object|Object[]} htmlArr Array of HTML objects
+ * @param {String|Object|Object[]} htmlArr String of HTML, single HTML objects, or array of HTML objects to convert
  * @param {Number} htmlArr[i].nodeType Numeric constant representing nodeType
  * @param {String} [htmlArr[i].nodeValue] If the nodeType is a text node, this will be the text returned
  * @param {String} [htmlArr[i].nodeName] If the nodeType is a tag, this will be the tag created. If the tag is a module, it will be created there
@@ -17,9 +13,19 @@ var ELEMENT_NODE_VAL = Node.ELEMENT_NODE,
  * @param {Object[]} [htmlArr[i].childNodes] If the nodeType is a tag and not a module, these will be the children nodes to append to this node
  */
 function Mason(htmlArr) {
-  // If the htmlArr is not an array, upcast it as one
-  if (getObjType(htmlArr) !== '[object Array]') {
-    htmlArr = [htmlArr];
+  // If the input is a string
+  if (typeof htmlArr === 'string') {
+    // Parse it and grab the childNodes
+    htmlArr = Mason.parseXML(htmlArr).childNodes;
+  } else if (htmlArr.length === undefined) {
+  // Otherwise, if the htmlArr is not an array
+    // If the htmlArr is a document node, use the childNodes as the input
+    if (htmlArr.nodeType === DOCUMENT_NODE_VAL) {
+      htmlArr = htmlArr.childNodes;
+    } else {
+    // Otherwise, upcast it as an array
+      htmlArr = [htmlArr];
+    }
   }
 
   // Create a document fragment (collection of HTMLElements) to return
@@ -36,6 +42,7 @@ function Mason(htmlArr) {
   for (; i < len; i++) {
     node = htmlArr[i];
     nodeType = node.nodeType;
+    elt = null;
 
     // Based on the type of the node
     switch (nodeType) {
@@ -61,11 +68,9 @@ function Mason(htmlArr) {
         // Create a text node
         elt = document.createTextNode(node.nodeValue);
         break;
-      default:
-        elt = null;
     }
 
-    // Append the element to the collection
+    // If an element was created, append it to the collection
     if (elt) {
       retFrag.appendChild(elt);
     }
@@ -171,18 +176,19 @@ Mason.disableModules = function () {
  * Static method to set attributes from an HTML object onto an element
  * @param {HTMLElement} elt Element to set attributes on
  * @param {Object} node HTML object to set attributes from.
- * @param {Object} node.attributes Object of key-value pairs of attributes to set. If not specified, node becomes promoted to attributes itself
- * @param {String} node.attributes.* Key value pair of attribute to set on the object
+ * @param {Object[]} node.attributes Array of attribute objects to set. If not specified, node becomes promoted to attributes itself
+ * @param {String} node.attributes[i].nodeName Name of the attribute to set
+ * @param {String} node.attributes[i].nodeValue Value of the attribute to set
  */
 Mason.setAttributes = function (elt, node) {
-  var attributes = node.attributes || node,
-      attributeName;
-  if (attributes !== undefined) {
-    for (attributeName in attributes) {
-      if (attributes.hasOwnProperty(attributeName)) {
-        elt.setAttribute(attributeName, attributes[attributeName]);
-      }
-    }
+  var attributes = node.attributes || node || [],
+      i = 0,
+      len = attributes.length,
+      attribute;
+
+  for (; i < len; i++) {
+    attribute = attributes[i];
+    elt.setAttribute(attribute.nodeName, attribute.nodeValue);
   }
 };
 
@@ -203,6 +209,35 @@ Mason.appendChildren = function (elt, node) {
     elt.appendChild(childFrag);
   }
 };
+
+/**
+ * String to XML Parser -- Attribution to jQuery for XML interpretter
+ * @param {String} data String of XML to read through
+ * @returns {Document} Document object containing the parsed XML
+ */
+// TODO: Reduce the overkill being done by this and potential side-effects of using XML
+// Found potential issue: standalone attributes (e.g. selected)
+Mason.parseXML = function (data) {
+  var xml, tmp;
+  try {
+    if ( window.DOMParser ) { // Standard
+      tmp = new DOMParser();
+      xml = tmp.parseFromString( data , "text/xml" );
+    } else { // IE
+      xml = new ActiveXObject( "Microsoft.XMLDOM" );
+      xml.async = "false";
+      xml.loadXML( data );
+    }
+  } catch( e ) {
+    xml = undefined;
+  }
+
+  if ( !xml || !xml.documentElement || xml.getElementsByTagName( "parsererror" ).length ) {
+    throw new Error('Invalid XML: ' + data);
+  }
+
+  return xml;
+}
 
 /**
  * DOM normalizer for event bindings
@@ -410,7 +445,6 @@ Mason.addModuleBatch({
   }
 });
 
-
 /*
   <dropdown id="dropdown">
     <text style="color: red; font-weight: bold;">My Dropdown</text>
@@ -421,59 +455,9 @@ Mason.addModuleBatch({
 */
 // Get the insertion area
 var insertArea = document.getElementById('insertArea'),
-    // Create an array of "HTML elements" to render
-    // TODO: A plaintext HTML interpretter will come later -- maybe borrowed from another project
-    htmlArr = [{
-      'nodeType': Node.ELEMENT_NODE,
-      'nodeName': 'dropdown',
-      'attributes': {
-        'id': 'dropdown'
-      },
-      'childNodes': [{
-        'nodeType': Node.ELEMENT_NODE,
-        'nodeName': 'text',
-        'attributes': {
-          'style': 'color: red; font-weight: bold;'
-        },
-        'childNodes': [{
-          'nodeType': Node.TEXT_NODE,
-          'nodeValue': 'My Dropdown'
-        }]
-      },{
-        'nodeType': Node.ELEMENT_NODE,
-        'nodeName': 'a',
-        'attributes': {
-          'href': '#first'
-        },
-        'childNodes': [{
-          'nodeType': Node.TEXT_NODE,
-          'nodeValue': 'First link'
-        }]
-      }, {
-        'nodeType': Node.ELEMENT_NODE,
-        'nodeName': 'a',
-        'attributes': {
-          'href': '#second'
-        },
-        'childNodes': [{
-          'nodeType': Node.TEXT_NODE,
-          'nodeValue': 'Second link'
-        }]
-      },{
-        'nodeType': Node.ELEMENT_NODE,
-        'nodeName': 'a',
-        'attributes': {
-          'href': '#third'
-        },
-        'childNodes': [{
-          'nodeType': Node.TEXT_NODE,
-          'nodeValue': 'Third link'
-        }]
-      }]
-    }],
-    // Render the HTML elements into a document fragment
-    htmlFrag = Mason(htmlArr);
-
+    htmlString = '<dropdown id="dropdown"><text style="color: red; font-weight: bold;">My Dropdown</text><a href="#first">First Link</a><a href="#second">Second Link</a><a href="#third">Third Link</a></dropdown>',
+    // Render the HTML string into a document fragment
+    htmlFrag = Mason(htmlString);
 // Append the fragment
 insertArea.appendChild(htmlFrag);
 
