@@ -111,6 +111,55 @@ DOMNormalizer.prototype = (function () {
 // Proof of concept (Advanced): Make a new foray of elements
 // Proof of concept (Advanced): Add in new event triggers corresponding to the UI element
 Mason.addModuleBatch({
+  'codedemo': function (codedemo) {
+    // FIXME: This is reliant on using XML parser initially
+    // Create a <code> node and a <div> for the demo
+    var frag = document.createDocumentFragment(),
+        demo = document.createElement('div'),
+    // Get the XML used by the codedemo
+        xml = codedemo.xml;
+
+    // If the xml was not found, use an XmlSerializer
+    if (xml === undefined) {
+      xml = (new XMLSerializer()).serializeToString(codedemo);
+    }
+
+    // Remove the <codedemo> wrapping
+    xml = xml.replace(/^<codedemo>[^\n]*\n/, '\n');
+    xml = xml.replace(/\s*<\/codedemo>$/, '');
+    xml = xml.replace(/\n      /g, '\n').replace(/^\n/, '');
+
+    // Replace all HTML entities to proper HTML counterparts
+    xml = xml.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br/>').replace(/\t/g, '  ').replace(/ /g, '&nbsp;');
+
+    // Create a code node via Mason
+    var codeHtml = [
+        '<div style="border: 1px solid black; min-width: 50%; float: left; margin: 0 5px;">',
+          '<div style="border-bottom: 1px solid black; padding: 5px;">',
+            'Code',
+          '</div>',
+          '<div style="background: navy; color: white; padding: 5px;">',
+            '<code>~~~</code>',
+          '</div>',
+        '</div>'
+        ].join(''),
+        code = Mason(codeHtml);
+
+    // Set up the innerHTML
+    // FIXME: Injecting directly inside of <code> broke things
+    code.childNodes[0].innerHTML = code.childNodes[0].innerHTML.replace('~~~', xml);
+
+    // Render a fragment for the demo and append it
+    var demoFrag = Mason(codedemo.childNodes);
+    demo.appendChild(demoFrag);
+
+    // Append the code and demo to the fragment
+    frag.appendChild(code);
+    frag.appendChild(demo);
+
+    // Return the generated fragment
+    return frag;
+  },
   'dropdown': function (dropdown) {
     // Collect the child nodes and their lengths
     var childNodes = dropdown.childNodes || [],
@@ -147,7 +196,7 @@ Mason.addModuleBatch({
         childFrag;
 
     // Remove default styling of the list
-    list.setAttribute('style', 'list-item-style: none; border-top: 1px solid black; padding: 0 5px; margin: 0;');
+    list.setAttribute('style', 'list-style-type: none; border-top: 1px solid black; padding: 0 5px; margin: 0;');
 
     // Iterate the child nodes
     for (; i < len; i++) {

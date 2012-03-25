@@ -23,9 +23,13 @@ var ELEMENT_NODE_VAL = Node.ELEMENT_NODE,
  * @param {String} [htmlArr[i].nodeValue] If the nodeType is a text node, this will be the text returned
  * @param {String} [htmlArr[i].nodeName] If the nodeType is a tag, this will be the tag created. If the tag is a module, it will be created there
  * @param {Object} [htmlArr[i].attributes] If the nodeType is a tag and not a module, these will be the attributes to apply to the node
+ * @param {Object} [htmlArr[i].attributes[j].nodeName] Name of the attribute to set
+ * @param {Object} [htmlArr[i].attributes[j].nodeValue] Value of the attribute to set
  * @param {Object[]} [htmlArr[i].childNodes] If the nodeType is a tag and not a module, these will be the children nodes to append to this node
+ * @param {Object} options Options for Mason to render with
+ * @param {Boolean} options.useModules Flag to use modules while parsing
  */
-function Mason(htmlArr) {
+function Mason(htmlArr, options) {
   var nodeType = htmlArr.nodeType;
   // If the input is a string
   if (typeof htmlArr === 'string') {
@@ -41,6 +45,10 @@ function Mason(htmlArr) {
       htmlArr = htmlArr.childNodes;
     }
   }
+
+  // Fallback and set up options for quick reference
+  options = options || {};
+  var useModules = options.hasOwnProperty('useModules') ? options.useModules : true;
 
   // Create a document fragment (collection of HTMLElements) to return
   var retFrag = document.createDocumentFragment(),
@@ -63,7 +71,7 @@ function Mason(htmlArr) {
         nodeName = node.nodeName;
 
         // If the nodeName is in the map of modules
-        if (Mason.useModules && modules.hasOwnProperty(nodeName)) {
+        if (useModules && modules.hasOwnProperty(nodeName)) {
           // Render it via that method
           elt = modules[nodeName](node);
         } else {
@@ -95,9 +103,6 @@ function Mason(htmlArr) {
 
 // Static properties/methods for Mason
 Mason.modules = {};
-
-// Boolean for whether Mason should or should not use modules
-Mason.useModules = true;
 
 /**
  * Add module method for Mason
@@ -166,24 +171,6 @@ Mason.addModuleBatch = function (module) {
   // // Return Mason for a fluent interface
   // return Mason;
 // };
-
-/**
- * Method that enables modules for Mason
- * @returns {Function} Returns Mason
- */
-Mason.enableModules = function () {
-  Mason.useModules = true;
-  return Mason;
-};
-
-/**
- * Method that disabled modules for Mason
- * @returns {Function} Returns Mason
- */
-Mason.disableModules = function () {
-  Mason.useModules = false;
-  return Mason;
-};
 
 /**
  * Static method to set attributes from an HTML object onto an element
@@ -285,9 +272,10 @@ Mason.replaceNode = function (newNode, origNode) {
 
 /**
  * Method to initiate and replace any 'script[type="text/Mason"]' tags in the page
+ * @param {Object} options to run Mason with (see Mason)
  */
 Mason.masonScriptType = /^text\/Mason/i;
-Mason.processPage = function () {
+Mason.processPage = function (options) {
   // Get all scripts from the page
   var pageScripts = document.getElementsByTagName('script') || [],
   // Copy over all scripts into an array instead of using an active DOM collection
@@ -298,15 +286,15 @@ Mason.processPage = function () {
       typeRegexp = Mason.masonScriptType,
       htmlString,
       htmlFrag;
-  
+
   // Iterate the scripts
   for (; i < len; i++) {
     script = scripts[i];
-    
+
     // If the type matches text/Mason, process it
     if (script.type.match(typeRegexp)) {
       htmlString = script.innerHTML;
-      htmlFrag = Mason(htmlString);
+      htmlFrag = Mason(htmlString, options);
       Mason.replaceNode(htmlFrag, script);
     }
   }
