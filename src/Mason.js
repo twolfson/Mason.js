@@ -276,6 +276,7 @@ Mason.replaceNode = function (newNode, origNode) {
  */
 Mason.masonScriptType = /^text\/Mason/i;
 Mason.processPage = function (options) {
+  // TODO: Get elements by attribute 'data-mason'
   // Get all scripts from the page
   var pageScripts = document.getElementsByTagName('script') || [],
   // Copy over all scripts into an array instead of using an active DOM collection
