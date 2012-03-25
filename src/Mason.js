@@ -271,12 +271,37 @@ Mason.replaceNode = function (newNode, origNode) {
 };
 
 /**
+ * Method to initiate and replace any nodes that have the attribute 'data-mason'
+ * @param {Object} options Options to run Mason with (see Mason)
+ */
+Mason.processPage = function (options) {
+  // Get all elements from the page
+  var pageElts = document.getElementsByTagName('*') || [],
+  // Copy over all elements into an array instead of using an active DOM collection
+      elts = [].slice.call(pageElts),
+      elt,
+      i = 0,
+      len = elts.length,
+      htmlFrag;
+
+  // Iterate the elements
+  for (; i < len; i++) {
+    elt = elts[i];
+
+    // If the type matches text/Mason, process it
+    if (elt.hasAttribute('data-mason')) {
+      htmlFrag = Mason(elt, options);
+      Mason.replaceNode(htmlFrag, elt);
+    }
+  }
+};
+
+/**
  * Method to initiate and replace any 'script[type="text/Mason"]' tags in the page
- * @param {Object} options to run Mason with (see Mason)
+ * @param {Object} options Options to run Mason with (see Mason)
  */
 Mason.masonScriptType = /^text\/Mason/i;
-Mason.processPage = function (options) {
-  // TODO: Get elements by attribute 'data-mason'
+Mason.processScripts = function (options) {
   // Get all scripts from the page
   var pageScripts = document.getElementsByTagName('script') || [],
   // Copy over all scripts into an array instead of using an active DOM collection
@@ -300,6 +325,27 @@ Mason.processPage = function (options) {
     }
   }
 };
+
+/**
+ * Filter method for text nodes from the top level of a collection
+ * @param {Object[]} htmlArr Array of HTML objects
+ * @returns {Object[]} Filtered array of HTML objects
+ */
+Mason.filterTextNodes = function (htmlArr) {
+  var retArr = [],
+      i = 0,
+      len = htmlArr.length,
+      node;
+
+  for (; i < len; i++) {
+    node = htmlArr[i];
+    if (node.nodeType !== TEXT_NODE_VAL) {
+      retArr.push(node);
+    }
+  }
+
+  return retArr;
+}
 
 return Mason;
 }())));

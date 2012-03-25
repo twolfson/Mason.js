@@ -114,7 +114,7 @@ Mason.addModuleBatch({
   'codedemo': function (codedemo) {
     // FIXME: This is reliant on using XML parser initially
     // Create a <code> node and a <div> for the demo
-    var frag = document.createDocumentFragment(),
+    var frag = document.createElement('div'),
         demo = document.createElement('div'),
     // Get the XML used by the codedemo
         xml = codedemo.xml;
@@ -134,12 +134,14 @@ Mason.addModuleBatch({
 
     // Create a code node via Mason
     var codeHtml = [
-        '<div style="border: 1px solid black; min-width: 50%; float: left; margin: 0 5px;">',
-          '<div style="border-bottom: 1px solid black; padding: 5px;">',
-            'Code',
-          '</div>',
-          '<div style="background: navy; color: white; padding: 5px;">',
-            '<code>~~~</code>',
+        '<div style="float: left; width: 50%">',
+          '<div style="border: 1px solid black; margin: 0 5px;">',
+            '<div style="background: #EEE; font-weight: bold; border-bottom: 1px solid black; padding: 5px;">',
+              'Code',
+            '</div>',
+            '<div style="background: navy; color: white; padding: 5px;">',
+              '<code>~~~</code>',
+            '</div>',
           '</div>',
         '</div>'
         ].join(''),
@@ -150,8 +152,23 @@ Mason.addModuleBatch({
     code.childNodes[0].innerHTML = code.childNodes[0].innerHTML.replace('~~~', xml);
 
     // Render a fragment for the demo and append it
-    var demoFrag = Mason(codedemo.childNodes);
-    demo.appendChild(demoFrag);
+    var demoContainerHtml = [
+        '<div style="float: left; width: 50%;">',
+          '<div style="border: 1px solid black; margin: 0 5px;">',
+            '<div style="background: #EEE; font-weight: bold; border-bottom: 1px solid black; padding: 5px;">',
+              'Result',
+            '</div>',
+            '<div style="padding: 5px;">',
+            '</div>',
+            '<div style="clear: both; padding-bottom: 5px;">',
+            '</div>',
+          '</div>',
+        '</div>'
+        ].join(''),
+        demoContainer = Mason(demoContainerHtml),
+        demoFrag = Mason(codedemo.childNodes);
+    demoContainer.childNodes[0].childNodes[0].childNodes[1].appendChild(demoFrag);
+    demo.appendChild(demoContainer);
 
     // Append the code and demo to the fragment
     frag.appendChild(code);

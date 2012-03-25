@@ -9,41 +9,129 @@
     }
 
     body,
-    p {
+    p,
+    h1,
+    h2 {
       margin: 0;
       padding: 0;
+    }
+
+    p,
+    h1,
+    h2 {
+      margin: 5px;
+    }
+
+    h2 {
+      margin-top: 20px;
+    }
+
+    .demoRow:after {
+      display: block;
+      visibility: hidden;
+      content: ".";
+      clear: both;
+      height: 0;
+      line-hieght: 0;
     }
   </style>
 </head>
 <body>
   <h1>Mason JS Demo Page</h1>
+  <p>
+    This page acts as a demonstration page for <a href="https://github.com/twolfson/Mason.js">Mason.js</a>. The demo currently showcases a proof of concept dropdown that features custom events and methods transparently created by a module.
+    <br/>
+    Additionally, all of the demo pieces are dynamically rendered by Mason.js. To see what is really going on behind the scenes, please view the source code.
+  </p>
   <div id="insertArea"></div>
   <script src="src/Mason.js"></script>
-  <script src="src/poc_module.js"></script>
+
+
+  <h2>Proof of Concept</h2>
+  <script src="src/demo_module.js"></script>
+  <div class="demoRow">
+    <script type="text/Mason">
+      <codedemo>
+        <dropdown id="demoDropdown">
+          <text style="color: red; font-weight: bold;">My Dropdown</text>
+          <a href="#first">First Link</a>
+          <a href="#second">Second Link</a>
+          <a href="#third">Third Link</a>
+        </dropdown>
+      </codedemo>
+    </script>
+    <script>
+      // Attempt to process the scripts on the page
+      Mason.processScripts();
+
+      // Listen for expand events
+      var dropdown = document.getElementById('demoDropdown'),
+          $dropdown = new DOMNormalizer(dropdown);
+      $dropdown.on('expand', function (e) {
+        console.log('expand');
+      });
+      $dropdown.on('collapse', function (e) {
+        console.log('collapse');
+      });
+    </script>
+  </div>
+
+
+  <h2>Ensighten UI Elements (unnecessary jQuery dependencies)</h2>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+  <script src="src/ensighten_module.js"></script>
+  <style>
+    .tabRow {
+      border-bottom: 1px solid black;
+    }
+    
+    .tabRow:after {
+      display: block;
+      visibility: hidden;
+      content: ".";
+      clear: both;
+      height: 0;
+      line-hieght: 0;
+    }
+
+    .tabHead {
+      float: left;
+      border: 1px solid linen;
+      padding: 5px 10px;
+      cursor: pointer;
+    }
+
+    .tabHead.isSelected {
+      border: 1px solid black;
+      border-bottom-color: linen;
+      margin-bottom: -1px;
+      padding-top: 6px;
+    }
+  </style>
   <script type="text/Mason">
     <codedemo>
-      <dropdown id="dropdown">
-        <text style="color: red; font-weight: bold;">My Dropdown</text>
-        <a href="#first">First Link</a>
-        <a href="#second">Second Link</a>
-        <a href="#third">Third Link</a>
-      </dropdown>
+      <tabs id="demoTabs">
+        <tab>
+          <text>Tab 1</text>
+          <content>This is tab 1's content</content>
+        </tab>
+        <tab>
+          <text>Tab 2</text>
+          <content>This is tab 2's content</content>
+        </tab>
+        <tab>
+          <text>Tab 3</text>
+          <content>This is tab 3's content</content>
+        </tab>
+      </tabs>
     </codedemo>
   </script>
   <script>
-    // Attempt to process the page
-    Mason.processPage();
-
-//    // Listen for expand events
-//    var dropdown = document.getElementById('dropdown'),
-//        $dropdown = new DOMNormalizer(dropdown);
-//    $dropdown.on('expand', function (e) {
-//      console.log('expand');
-//    });
-//    $dropdown.on('collapse', function (e) {
-//      console.log('collapse');
-//    });
+    // Attempt to process the scripts on the page
+    Mason.processScripts();
   </script>
+
+
   <script src="https://raw.github.com/twolfson/File-Watcher/master/src/watcher.js"></script>
   <script src="https://raw.github.com/twolfson/Resource-Collector/master/src/collector.js"></script>
   <script>
