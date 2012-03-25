@@ -21,9 +21,13 @@ Mason.addModuleBatch({
     }
 
     var container = document.createElement('div'),
+        $container = $(container),
         tabRow = document.createElement('div'),
+        tabArr = [],
+        tabIndex = 0,
         currentTab,
-        Tab = function (head, content) {
+        Tab = function (index, head, content) {
+          this.index = index;
           this.$head = $(head);
           this.$content = $(content);
         };
@@ -34,26 +38,38 @@ Mason.addModuleBatch({
 
     Tab.prototype = {
       'select': function () {
+        var $head = this.$head;
+
         // Deselect the last tab
-        if (currentTab) {
-          currentTab.deselect();
-        }
+        currentTab.deselect();
 
         // Visually select the next tab
-        this.$head.addClass('isSelected');
+        $head.addClass('isSelected');
         this.$content.css('display', 'block');
 
         // Save the current tab
-        currentTab = this;
+        container.value = this.index;
+        container.currentTab = currentTab = this;
 
-        // TODO: Fire an event
+        // Fire an event
+        $head.trigger('select', this);
       },
       'deselect': function () {
-        this.$head.removeClass('isSelected');
+        var $head = this.$head;
+        $head.removeClass('isSelected');
         this.$content.css('display', 'none');
 
-        // TODO: Fire an event
+        // Fire an event
+        $head.trigger('deselect', this);
       }
+    };
+
+    // Function to change tabs
+    container.changeTab = function (index) {
+      // Select the tab and trigger an onchange event
+      var tab = tabArr[index];
+      tab.select();
+      $container.trigger('change', tab);
     };
 
     // Append the tabRow to the container
@@ -61,8 +77,9 @@ Mason.addModuleBatch({
 
     // Filter out textNodes from the tabs
     for (; i < len; i++) {
-      (function (tabNode) {
-      var tab,
+      (function (i) {
+      var tabNode = tabNodes[i],
+          tab,
           tabHead,
           tabContent,
           tabChildren = tabNode.childNodes || [],
@@ -99,21 +116,24 @@ Mason.addModuleBatch({
       container.appendChild(tabContent);
 
       // Create a tab object for bindings
-      tab = new Tab(tabHead, tabContent);
+      tab = new Tab(i, tabHead, tabContent);
 
       // When the tab head is clicked on, select it
       $(tabHead).on('click', function() {
         tab.select();
       });
 
-      // If this is the first tab
-      if (i === 0) {
-        // Save it as the current tab and select it
-        currentTab = tab;
-        tab.select();
-      }
-      }(tabNodes[i]));
+      // Memoize the tab to the tabArr
+      tabArr.push(tab);
+      }(i));
     }
+
+    // Change to the tab index
+    currentTab = tabArr[tabIndex];
+    currentTab.select();
+    
+    // Expose the amount of tabs
+    container.tabLength = tabArr.length;
 
     return container;
   }

@@ -139,7 +139,7 @@ Mason.addModuleBatch({
             '<div style="background: #EEE; font-weight: bold; border-bottom: 1px solid black; padding: 5px;">',
               'Code',
             '</div>',
-            '<div style="background: navy; color: white; padding: 5px;">',
+            '<div style="background: navy; color: white; padding: 5px; overflow: auto;">',
               '<code>~~~</code>',
             '</div>',
           '</div>',
@@ -267,6 +267,17 @@ Mason.addModuleBatch({
 
     // Set any attributes for the container
     Mason.setAttributes(container, dropdown);
+
+    // Set up methods for directly triggering events
+    container.expand = function () {
+      isExpanded = true;
+      render();
+    };
+
+    container.collapse = function () {
+      isExpanded = false;
+      render();
+    };
 
     // Append the list to the container
     container.appendChild(list);

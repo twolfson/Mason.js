@@ -34,7 +34,14 @@
       height: 0;
       line-hieght: 0;
     }
+    
+    #demoDropdowExpandButton,
+    #demoDropdowCollapseButton {
+      margin-left: 5px;
+    }
   </style>
+  <script src="demo/message.min.js"></script>
+  <link type="text/css" rel="stylesheet" href="demo/message.css" />
 </head>
 <body>
   <h1>Mason JS Demo Page</h1>
@@ -58,9 +65,12 @@
           <a href="#second">Second Link</a>
           <a href="#third">Third Link</a>
         </dropdown>
+        <button id="demoDropdowExpandButton">Expand the Dropdown</button>
+        <button id="demoDropdowCollapseButton">Collapse the Dropdown</button>
       </codedemo>
     </script>
     <script>
+      (function () {
       // Attempt to process the scripts on the page
       Mason.processScripts();
 
@@ -68,11 +78,25 @@
       var dropdown = document.getElementById('demoDropdown'),
           $dropdown = new DOMNormalizer(dropdown);
       $dropdown.on('expand', function (e) {
-        console.log('expand');
+        dhtmlx.message('The dropdown has been expanded');
       });
       $dropdown.on('collapse', function (e) {
-        console.log('collapse');
+        dhtmlx.message('The dropdown has been collapsed');
       });
+
+      // Bind to the onclicks for the buttons
+      var expandButton = document.getElementById('demoDropdowExpandButton'),
+          $expandButton = new DOMNormalizer(expandButton);
+      $expandButton.on('click', function (e) {
+        dropdown.expand();
+      });
+
+      var collapseButton = document.getElementById('demoDropdowCollapseButton'),
+          $collapseButton = new DOMNormalizer(collapseButton);
+      $collapseButton.on('click', function (e) {
+        dropdown.collapse();
+      });
+      }());
     </script>
   </div>
 
@@ -84,7 +108,7 @@
     .tabRow {
       border-bottom: 1px solid black;
     }
-    
+
     .tabRow:after {
       display: block;
       visibility: hidden;
@@ -124,11 +148,31 @@
           <content>This is tab 3's content</content>
         </tab>
       </tabs>
+      <button id="demoTabsFirstButton">Select first tab</button>
+      <button id="demoTabsNextButton">Select next tab</button>
     </codedemo>
   </script>
   <script>
     // Attempt to process the scripts on the page
     Mason.processScripts();
+    
+    // Add console hooks
+    var demoTabs = document.getElementById('demoTabs'),
+        $demoTabs = $(demoTabs);
+    // TODO: Messages are firing at inverse timings -- need to switch over to render/statechange separation
+    $demoTabs.on('change', function () {
+      dhtmlx.message('Changed to Tab ' + (demoTabs.value + 1));
+    });
+    
+    // Add button bindings
+    $('#demoTabsFirstButton').on('click', function () {
+      demoTabs.changeTab(0);
+    });
+    $('#demoTabsNextButton').on('click', function () {
+      var tabIndex = demoTabs.value,
+          nextIndex = (tabIndex + 1) % demoTabs.tabLength;
+      demoTabs.changeTab(nextIndex);
+    });
   </script>
 
 
@@ -136,6 +180,10 @@
   <script src="https://raw.github.com/twolfson/Resource-Collector/master/src/collector.js"></script>
   <script>
       (function () {
+        if (location.hostname !== 'localhost') {
+          return;
+        }
+
          var watcher = new FileWatcher(),
              resources = ResourceCollector.collect();
          watcher.addListener(function () {
