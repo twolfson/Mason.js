@@ -1,0 +1,60 @@
+<!doctype html>
+<html>
+<head>
+  <title>Mason JS Demo Page</title>
+  <style>
+    /* Page styling */
+    body {
+      background: linen;
+    }
+
+    body,
+    p {
+      margin: 0;
+      padding: 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>Mason JS Demo Page</h1>
+  <div id="insertArea"></div>
+  <script src="src/Mason.js"></script>
+  <script src="src/poc_module.js"></script>
+  <script type="text/Mason">
+    <codedemo>
+      <dropdown id="dropdown">
+        <text style="color: red; font-weight: bold;">My Dropdown</text>
+        <a href="#first">First Link</a>
+        <a href="#second">Second Link</a>
+        <a href="#third">Third Link</a>
+      </dropdown>
+    </codedemo>
+  </script>
+  <script>
+    // Attempt to process the page
+    Mason.processPage();
+
+//    // Listen for expand events
+//    var dropdown = document.getElementById('dropdown'),
+//        $dropdown = new DOMNormalizer(dropdown);
+//    $dropdown.on('expand', function (e) {
+//      console.log('expand');
+//    });
+//    $dropdown.on('collapse', function (e) {
+//      console.log('collapse');
+//    });
+  </script>
+  <script src="https://raw.github.com/twolfson/File-Watcher/master/src/watcher.js"></script>
+  <script src="https://raw.github.com/twolfson/Resource-Collector/master/src/collector.js"></script>
+  <script>
+      (function () {
+         var watcher = new FileWatcher(),
+             resources = ResourceCollector.collect();
+         watcher.addListener(function () {
+           location.reload();
+         });
+         watcher.watch(resources);
+      }());
+  </script>
+</body>
+</html>
