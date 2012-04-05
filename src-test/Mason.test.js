@@ -37,11 +37,11 @@ suite.addBatch({
             return sandbox;
           },
           'contains the expected child nodes': function (sandbox) {
-            assert(sandbox.innerHTML.indexOf('<div>Hello World!</div>') >= 0);
+            assert(sandbox.innerHTML.match(/<div>Hello World!<\/div>/i));
           }
         }
       }
-    },
+    }
   },
   'can parse an HTML fragment': '',
   'can parse an array of HTMLNodes/Objects': '',
