@@ -1,4 +1,4 @@
-// TODO: JSHint me
+// TODO: Step back from vows and review perspective (i.e. what is the golden BDD engine?)
 (function () {
 /**
  * Constructor for a Skeleton (test suite)
@@ -62,21 +62,27 @@ Skeleton.addModule('Mocha', function (batches) {
       len = batches.length,
       batch;
   for (; i < len; i++) {
+    batch = batches[i];
+    parseBatch(batch);
+  }
+
+  function parseBatch(batch) {
     // Mocha does not use batches
-    (function (batch) {
-      var description;
-      // Iterate the keys of the batch
-      for (description in batch) {
-        if (batch.hasOwnProperty(description)) {
+    var description;
+
+    // Iterate the keys of the batch
+    for (description in batch) {
+      if (batch.hasOwnProperty(description)) {
+        (function (description) {
           // Describe the context
           // TODO: Handle before, after
           describe(description, function () {
             var context = batch[description];
             parseContext(context, []);
           });
-        }
+        }(description));
       }
-    }(batches[i]));
+    }
   }
 
   function parseContext(context, topicChain) {
@@ -89,34 +95,34 @@ Skeleton.addModule('Mocha', function (batches) {
     if (topicFn !== undefined) {
       // TODO: Handle async portion for 'this' (e.g. this.callback)
       topic = topicFn.apply({}, topicChain);
-      topicChain.push(topic);
+      topicChain.unshift(topic);
     }
 
     // Loop through the descriptions (skipping topic)
     var description,
-        lastTopic = topicChain[topicChain.length - 1],
-        item,
-        itemType;
+        firstTopic = topicChain[0];
     for (description in context) {
       if (description !== 'topic' && context.hasOwnProperty(description)) {
-        item = context[description];
-        itemType = typeof item;
+        (function (description) {
+          var item = context[description],
+              itemType = typeof item;
 
-        // If the item is an object, it is a sub-context
-        if (itemType === 'object') {
-          // Describe and recurse the sub-context
-          describe(description, function () {
-            parseContext(item);
-          });
-        } else if (itemType === 'function') {
-        // Otherwise, if it is a function, it is a vow
-          // Run the vow as an 'it'
-          it(description, function () {
-            item(lastTopic);
-          });
-        }
-        // Otherwise, it is a promise
-          // Mocha does not support promises
+          // If the item is an object, it is a sub-context
+          if (itemType === 'object') {
+            // Describe and recurse the sub-context
+            describe(description, function () {
+              parseContext(item, topicChain);
+            });
+          } else if (itemType === 'function') {
+          // Otherwise, if it is a function, it is a vow
+            // Run the vow as an 'it'
+            it(description, function () {
+              item(firstTopic);
+            });
+          }
+          // Otherwise, it is a promise
+            // Mocha does not support promises
+        }(description));
       }
     }
   }

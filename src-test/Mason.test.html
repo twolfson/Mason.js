@@ -3,6 +3,28 @@
     <title>Mason Test Page</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <link rel="stylesheet" href="https://raw.github.com/visionmedia/mocha/master/mocha.css" />
+    <style>
+      body {
+        font-size: 2em;
+      }
+
+      #stats {
+        font-size: 0.5em;
+      }
+
+      h1 {
+        font-size: 1em;
+      }
+
+      h1 + div h1,
+      h1 + div h2 {
+        font-size: .7em;
+      }
+      
+      #TESTsandbox {
+        display: none;
+      }
+    </style>
     <script src="https://raw.github.com/visionmedia/mocha/master/mocha.js"></script>
     <script>
       mocha.setup('bdd');
@@ -10,7 +32,13 @@
         if (!expr) throw new Error(msg || 'failed');
       }
     </script>
+  </head>
+  <body>
+    <div id="mocha"></div>
+    <div id="TESTsandbox"></div>
+
     <script src="Skeleton.js"></script>
+    <script src="../src/Mason.js"></script>
     <script src="Mason.test.js"></script>
     <script>
       window.onload = function(){
@@ -22,9 +50,7 @@
         // });
       };
     </script>
-  </head>
-  <body>
-    <div id="mocha"></div>
+
     <script src="https://raw.github.com/twolfson/File-Watcher/master/src/watcher.js"></script>
     <script src="https://raw.github.com/twolfson/Resource-Collector/master/src/collector.js"></script>
     <script>
