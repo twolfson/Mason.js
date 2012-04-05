@@ -95,10 +95,10 @@ suite.addBatch({
       'reacts to custom events': 'a' || function (dropdown) {
         var $dropdown = new DOMNormalizer(dropdown),
             list = dropdown.getElementsByTagName('ul')[0];
-            console.log(list.style.display);
+
         assert(list.style.display === 'none');
         $dropdown.trigger('expand');
-            console.log(list.style.display);
+
         assert(list.style.display !== 'none');
       },
       'fires custom events': 'TODO: Figure out how to do the "click". Probably need a Selenium =/',
