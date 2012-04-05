@@ -8,6 +8,7 @@ var suite = new Skeleton('Mason.js'),
       return getObjType(item) === '[object DocumentFragment]';
     };
 
+// First batch: Basics
 suite.addBatch({
   'Mason': {
     topic: function () {
@@ -39,34 +40,47 @@ suite.addBatch({
           }
         }
       }
-    }
-  }
-    // 'can parse an HTML fragment': '',
-    // 'can parse an array of HTMLNodes/Objects': '',
-    // 'can parse an HTMLNode/Object': '',
-    // 'if a method doesnt exist': {
+    },
+  },
+  // 'can parse an HTML fragment': '',
+  // 'can parse an array of HTMLNodes/Objects': '',
+  // 'can parse an HTMLNode/Object': ''
+});
+
+// Second batch: Intermediate
+suite.addBatch({
+  // 'if a method doesnt exist': {
+    // 'should gracefully degrade to normal': ''
+  // },
+  // 'if a method doesnt exist': {
+    // 'and the tag normally does not exist': {
       // 'should gracefully degrade to normal': ''
-    // },
-    // 'if a method doesnt exist': {
-      // 'and the tag normally does not exist': {
-        // 'should gracefully degrade to normal': ''
-      // }
-    // },
-    // 'an onclick attribute in HTML on a normal tag': {
-      // 'should stay in rendering': {
-        // 'and work properly after': ''
-      // }
-    // },
-    // 'an onclick attribute in HTML on a custom tag': {
-      // 'should stay in rendering': {
-        // 'and work properly after': ''
-      // }
-    // },
-    // 'when use modules is disabled': {
-      // 'and a would-be custom tag is being rendered': {
-        // 'it is rendered as a normal tag': ''
-      // }
     // }
+  // },
+  // 'an onclick attribute in HTML on a normal tag': {
+    // 'should stay in rendering': {
+      // 'and work properly after': ''
+    // }
+  // },
+  // 'an onclick attribute in HTML on a custom tag': {
+    // 'should stay in rendering': {
+      // 'and work properly after': ''
+    // }
+  // },
+  // 'when use modules is disabled': {
+    // 'and a would-be custom tag is being rendered': {
+      // 'it is rendered as a normal tag': ''
+    // }
+  // }
+});
+    
+// Third batch: Advanced
+suite.addBatch({
+  // 'a custom module': {
+    // 'reacts to custom events': ''
+    // 'fires custom events': ''
+    // 'has a non-standard value (array)': ''
+    // 'has a direct non-standard methods': ''
   // }
 });
 
