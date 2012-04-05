@@ -68,94 +68,59 @@ Skeleton.addModule('Mocha', function (batches) {
       // Iterate the keys of the batch
       for (description in batch) {
         if (batch.hasOwnProperty(description)) {
-          context = batch[description];
-
           // Describe the context
           // TODO: Handle before, after
           describe(description, function () {
             var context = batch[description];
-
-            // If the context has a topic, grab it
-            var topicFn = context.topic,
-                topic,
-            // TODO: When recursing, use a built up topic chain
-                topicChain = [];
-            if (topicFn !== undefined) {
-              // TODO: Handle async portion for 'this'
-              topic = topicFn.apply({}, topicChain);
-              topicChain.push(topic);
-            }
-
-            // Loop through the descriptions (skipping topic)
-            // TODO: The head of this function is where recursion is introduced
-            var subdescription,
-            // TODO: Use the length for push and re-use it here
-                lastTopic = topicChain[topicChain.length - 1],
-                subitem,
-                subitemType;
-            for (subdescription in context) {
-              if (subdescription !== 'topic' && context.hasOwnProperty(subdescription)) {
-                subitem = context[subdescription];
-                subitemType = typeof subitem;
-
-                // If the item is an object, it is a sub-context
-                if (subitemType === 'object') {
-                  // Describe and recurse the sub-context
-                  describe(subdescription, function () {
-                    // TODO: Recurse here
-                  });
-                } else if (subitemType === 'function') {
-                // Otherwise, if it is a function, it is a vow
-                  // Run the vow as an 'it'
-                  it(subdescription, function () {
-                    subitem(lastTopic);
-                  });
-                }
-                // Otherwise, it is a promise
-                  // Mocha does not support promises
-              }
-            }
+            parseContext(context, []);
           });
         }
       }
     }(batches[i]));
   }
+
+  function parseContext(context, topicChain) {
+    // Fallback topicChain
+    topicChain = topicChain || [];
+
+    // If the context has a topic, grab it
+    var topicFn = context.topic,
+        topic;
+    if (topicFn !== undefined) {
+      // TODO: Handle async portion for 'this' (e.g. this.callback)
+      topic = topicFn.apply({}, topicChain);
+      topicChain.push(topic);
+    }
+
+    // Loop through the descriptions (skipping topic)
+    var description,
+        lastTopic = topicChain[topicChain.length - 1],
+        item,
+        itemType;
+    for (description in context) {
+      if (description !== 'topic' && context.hasOwnProperty(description)) {
+        item = context[description];
+        itemType = typeof item;
+
+        // If the item is an object, it is a sub-context
+        if (itemType === 'object') {
+          // Describe and recurse the sub-context
+          describe(description, function () {
+            parseContext(item);
+          });
+        } else if (itemType === 'function') {
+        // Otherwise, if it is a function, it is a vow
+          // Run the vow as an 'it'
+          it(description, function () {
+            item(lastTopic);
+          });
+        }
+        // Otherwise, it is a promise
+          // Mocha does not support promises
+      }
+    }
+  }
 });
-
-// describe('Array', function(){
-  // before(function(){
-    // // ...
-  // });
-
-  // describe('#indexOf()', function(){
-    // it('should return -1 when not present', function(){
-      // [1,2,3].indexOf(4).should.equal(-1);
-    // });
-  // });
-// });
-
-// vows.describe('Array').addBatch({                      // Batch
-    // 'An array': {                                      // Context
-        // 'with 3 elements': {                           // Sub-Context
-            // topic: [1, 2, 3],                          // Topic
-
-            // 'has a length of 3': function (topic) {    // Vow
-                // assert.equal(topic.length, 3);
-            // }
-        // },
-        // 'with zero elements': {                        // Sub-Context
-            // topic: [],                                 // Topic
-
-            // 'has a length of 0': function (topic) {    // Vow
-                // assert.equal(topic.length, 0);
-            // },
-            // 'returns *undefined*, when `pop()`ed': function (topic) {
-                // assert.isUndefined(topic.pop());
-            // }
-        // }
-    // }
-// });
-
 
 // Export to global scope
 // TODO: Prepare for node, requirejs, etc
