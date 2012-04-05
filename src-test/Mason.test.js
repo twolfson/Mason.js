@@ -1,8 +1,14 @@
-describe('Mason', function () {
-  it('should be an object', function () {
-    assert(true);
-  });
+var suite = new Skeleton('Mason.js');
+
+suite.addBatch({
+  'Mason': {
+    'should be an object': function () {
+      assert(true);
+    }
+  }
 });
+
+suite.exportTo('Mocha');
 
 // {
   // 'Mason': {

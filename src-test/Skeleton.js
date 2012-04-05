@@ -114,6 +114,7 @@ Skeleton.addModule('Mocha', function (batches) {
                 // Otherwise, it is a promise
                   // Mocha does not support promises
               }
+            }
           });
         }
       }
