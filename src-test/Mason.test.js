@@ -6,7 +6,8 @@ var suite = new Skeleton('Mason.js'),
     },
     isDocFrag = function (item) {
       return getObjType(item) === '[object DocumentFragment]';
-    };
+    },
+    sandbox = document.getElementById('TESTsandbox');
 
 // First batch: Basics
 suite.addBatch({
@@ -36,15 +37,15 @@ suite.addBatch({
             return sandbox;
           },
           'contains the expected child nodes': function (sandbox) {
-            assert(sandbox.innerHTML === '<div>Hello World!</div>');
+            assert(sandbox.innerHTML.indexOf('<div>Hello World!</div>') >= 0);
           }
         }
       }
     },
   },
-  // 'can parse an HTML fragment': '',
-  // 'can parse an array of HTMLNodes/Objects': '',
-  // 'can parse an HTMLNode/Object': ''
+  'can parse an HTML fragment': '',
+  'can parse an array of HTMLNodes/Objects': '',
+  'can parse an HTMLNode/Object': ''
 });
 
 // Second batch: Intermediate
@@ -73,15 +74,56 @@ suite.addBatch({
     // }
   // }
 });
-    
+
 // Third batch: Advanced
+// TODO: TEST ME FIRST
 suite.addBatch({
-  // 'a custom module': {
-    // 'reacts to custom events': ''
-    // 'fires custom events': ''
-    // 'has a non-standard value (array)': ''
-    // 'has a direct non-standard methods': ''
-  // }
+  'A custom module (dropdown)': {
+    'when used': {
+      topic: function () {
+        // TODO: Include some line breaks and carriage returns for realism
+        var dropdownStr = '<dropdown id="TESTdropdown"><text>My Dropdown</text><option>Option 1</option><option>Option 2</option><option>Option 3</option></dropdown>',
+            docFrag = Mason(dropdownStr);
+        sandbox.appendChild(docFrag);
+        var dropdown = document.getElementById('TESTdropdown');
+        return dropdown;
+      },
+      'creates the expected item': function (dropdown) {
+        assert(dropdown);
+      },
+      // TODO: Add listeners to dropdown OR use tabs
+      'reacts to custom events': 'a' || function (dropdown) {
+        var $dropdown = new DOMNormalizer(dropdown),
+            list = dropdown.getElementsByTagName('ul')[0];
+            console.log(list.style.display);
+        assert(list.style.display === 'none');
+        $dropdown.trigger('expand');
+            console.log(list.style.display);
+        assert(list.style.display !== 'none');
+      },
+      'fires custom events': 'TODO: Figure out how to do the "click". Probably need a Selenium =/',
+      'has a non-standard value (array)': '',
+      'has a direct non-standard methods': function (dropdown) {
+        var list = dropdown.getElementsByTagName('ul')[0];
+
+        // Make sure there is a expand and collapse function
+        assert(dropdown.expand);
+        assert(dropdown.collapse);
+
+        // Collapse the dropdown and make sure it worked
+        dropdown.collapse();
+        assert(list.style.display === 'none');
+
+        // Expand the dropdown and make sure it worked
+        dropdown.expand();
+        assert(list.style.display !== 'none');
+
+        // Double verify the collapse
+        dropdown.collapse();
+        assert(list.style.display === 'none');
+      }
+    }
+  }
 });
 
 suite.exportTo('Mocha');

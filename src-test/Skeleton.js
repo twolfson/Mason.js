@@ -74,12 +74,14 @@ Skeleton.addModule('Mocha', function (batches) {
     for (description in batch) {
       if (batch.hasOwnProperty(description)) {
         (function (description) {
-          // Describe the context
-          // TODO: Handle before, after
-          describe(description, function () {
-            var context = batch[description];
-            parseContext(context, []);
-          });
+          var context = batch[description];
+          
+          // If the context is an object, describe it
+          if (typeof context === 'object') {
+            describe(description, function () {
+              parseContext(context, []);
+            });
+          }
         }(description));
       }
     }
@@ -90,6 +92,7 @@ Skeleton.addModule('Mocha', function (batches) {
     topicChain = topicChain || [];
 
     // If the context has a topic, grab it
+    // TODO: Handle before, after
     var topicFn = context.topic,
         topic;
     if (topicFn !== undefined) {
