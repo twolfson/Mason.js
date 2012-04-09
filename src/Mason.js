@@ -250,10 +250,16 @@ Mason.mergeNode = function (baseNode, nodeChanges) {
   var retObj = {},
       key;
 
-  // TODO: IE6 dislikes this since it is iterating a Node directly
-  for (key in baseNode) {
-    retObj[key] = baseNode[key];
-  }
+  // FIXME: IE6/7 dislikes this since it is iterating a Node directly
+  // for (key in baseNode) {
+    // retObj[key] = baseNode[key];
+  // }
+
+  // In the interim, copy over the nodeType, nodeValue, childNodes, and attributes
+  retObj.nodeName = baseNode.nodeName;
+  retObj.nodeValue = baseNode.nodeValue;
+  retObj.childNodes = baseNode.childNodes;
+  retObj.attributes = baseNode.attributes;
 
   for (key in nodeChanges) {
     retObj[key] = nodeChanges[key];

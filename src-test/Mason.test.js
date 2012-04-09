@@ -86,6 +86,7 @@ suite.addBatch({
             docFrag = Mason(dropdownStr);
         sandbox.appendChild(docFrag);
         var dropdown = document.getElementById('TESTdropdown');
+        
         return dropdown;
       },
       'creates the expected item': function (dropdown) {
