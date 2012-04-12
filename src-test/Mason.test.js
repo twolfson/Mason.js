@@ -94,12 +94,13 @@ suite.addBatch({
         assert(typeof square.value === 'object');
       },
       'reacts to custom events': function (square) {
-        var $square = new DOMNormalizer(square);
+        var $square = new DOMNormalizer(square),
+            lastColor = square.value.color;
 
-        assert(square.value.color !== 'red');
-        $square.trigger('setcolor', 'red');
+        // TODO: Change back to scramblecolor
+        $square.trigger('click');
 
-        assert(square.value.color !== 'red');
+        assert(square.value.color !== lastColor);
       },
       'supports direct non-standard methods': function (square) {
         assert(square.value.color !== 'green');
@@ -116,7 +117,8 @@ suite.addBatch({
 
         assert(square.value.color !== 'magenta');
 
-        $square.on('colorchange', function () {
+        // TODO: Change back to colorchange
+        $square.on('change', function () {
           eventOccurred = true;
         });
 

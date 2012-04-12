@@ -21,7 +21,6 @@ DOMNormalizer.makeEvent = (function () {
 
     // Grab the event type and create the event
     var eventType = options.eventType || 'HTMLEvents',
-        // TODO: Test IE createEventObject
         event = createEvent.call(document, eventType);
 
     // Return the created event

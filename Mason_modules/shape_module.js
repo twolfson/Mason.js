@@ -50,7 +50,7 @@ Mason.addModule('square', function (square) {
       state.color = color;
 
       // Fire a colorchange event
-      $retSquare.trigger('colorchange', color);
+      $retSquare.trigger('change', color);
 
       // Render the shape
       render();
@@ -68,7 +68,22 @@ Mason.addModule('square', function (square) {
   }
 
   // Set up a custom event listener for setColor events
-  $retSquare.on('setcolor', setColor);
+  function generateColor() {
+    var color = (Math.random() * 16777215) | 0,
+        hexColor = color.toString(16),
+        hexStr = '#' + hexColor;
+    return hexStr;
+  }
+
+  $retSquare.on('click', function () {
+    var color = state.color;
+
+    while (color === state.color) {
+      color = generateColor();
+    }
+
+    setColor(color);
+  });
 
   return retSquare;
 });
