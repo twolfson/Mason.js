@@ -1,19 +1,4 @@
 (function () {
-  var Node = window.Node || {
-        ELEMENT_NODE                :  1,
-        ATTRIBUTE_NODE              :  2,
-        TEXT_NODE                   :  3,
-        CDATA_SECTION_NODE          :  4,
-        ENTITY_REFERENCE_NODE       :  5,
-        ENTITY_NODE                 :  6,
-        PROCESSING_INSTRUCTION_NODE :  7,
-        COMMENT_NODE                :  8,
-        DOCUMENT_NODE               :  9,
-        DOCUMENT_TYPE_NODE          : 10,
-        DOCUMENT_FRAGMENT_NODE      : 11,
-        NOTATION_NODE               : 12
-      };
-
 /**
  * DOM normalizer for event bindings
  * @param {HTMLElement} elt Element to normalize for
@@ -123,7 +108,75 @@ DOMNormalizer.prototype = (function () {
 }());
 
 
+// Proof of concept (Advanced): Make a new foray of elements
+// Proof of concept (Advanced): Add in new event triggers corresponding to the UI element
 Mason.addModuleBatch({
+  'codedemo': function (codedemo) {
+    // FIXME: This is reliant on using XML parser initially
+    // Create a <code> node and a <div> for the demo
+    var frag = document.createElement('div'),
+        demo = document.createElement('div'),
+    // Get the XML used by the codedemo
+        xml = codedemo.xml;
+
+    // If the xml was not found, use an XmlSerializer
+    if (xml === undefined) {
+      xml = (new XMLSerializer()).serializeToString(codedemo);
+    }
+
+    // Remove the <codedemo> wrapping
+    xml = xml.replace(/^<codedemo>[^\n]*\n/, '\n');
+    xml = xml.replace(/\s*<\/codedemo>$/, '');
+    xml = xml.replace(/\n      /g, '\n').replace(/^\n/, '');
+
+    // Replace all HTML entities to proper HTML counterparts
+    xml = xml.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br/>').replace(/\t/g, '  ').replace(/ /g, '&nbsp;');
+
+    // Create a code node via Mason
+    var codeHtml = [
+        '<div style="float: left; width: 50%">',
+          '<div style="border: 1px solid black; margin: 0 5px;">',
+            '<div style="background: #EEE; font-weight: bold; border-bottom: 1px solid black; padding: 5px;">',
+              'Code',
+            '</div>',
+            '<div style="background: navy; color: white; padding: 5px; overflow: auto;">',
+              '<code>~~~</code>',
+            '</div>',
+          '</div>',
+        '</div>'
+        ].join(''),
+        code = Mason(codeHtml);
+
+    // Set up the innerHTML
+    // FIXME: Injecting directly inside of <code> broke things
+    code.childNodes[0].innerHTML = code.childNodes[0].innerHTML.replace('~~~', xml);
+
+    // Render a fragment for the demo and append it
+    var demoContainerHtml = [
+        '<div style="float: left; width: 50%;">',
+          '<div style="border: 1px solid black; margin: 0 5px;">',
+            '<div style="background: #EEE; font-weight: bold; border-bottom: 1px solid black; padding: 5px;">',
+              'Result',
+            '</div>',
+            '<div style="padding: 5px;">',
+            '</div>',
+            '<div style="clear: both; padding-bottom: 5px;">',
+            '</div>',
+          '</div>',
+        '</div>'
+        ].join(''),
+        demoContainer = Mason(demoContainerHtml),
+        demoFrag = Mason(codedemo.childNodes);
+    demoContainer.childNodes[0].childNodes[0].childNodes[1].appendChild(demoFrag);
+    demo.appendChild(demoContainer);
+
+    // Append the code and demo to the fragment
+    frag.appendChild(code);
+    frag.appendChild(demo);
+
+    // Return the generated fragment
+    return frag;
+  },
   'dropdown': function (dropdown) {
     // Collect the child nodes and their lengths
     var childNodes = dropdown.childNodes || [],
