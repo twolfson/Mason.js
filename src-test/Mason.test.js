@@ -97,8 +97,7 @@ suite.addBatch({
         var $square = new DOMNormalizer(square),
             lastColor = square.value.color;
 
-        // TODO: Change back to scramblecolor
-        $square.trigger('click');
+        $square.trigger('scramblecolor');
 
         assert(square.value.color !== lastColor);
       },
@@ -117,8 +116,7 @@ suite.addBatch({
 
         assert(square.value.color !== 'magenta');
 
-        // TODO: Change back to colorchange
-        $square.on('change', function () {
+        $square.on('colorchange', function () {
           eventOccurred = true;
         });
 
