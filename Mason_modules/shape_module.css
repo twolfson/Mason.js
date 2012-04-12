@@ -1,0 +1,14 @@
+.shape {
+  color: white;
+}
+
+.shape,
+.shape.square,
+.shape.circle {
+  height: 100px;
+  width: 100px;
+}
+
+.shape.circle {
+  border-radius: 50%;
+}

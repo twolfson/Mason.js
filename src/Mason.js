@@ -257,6 +257,7 @@ Mason.mergeNode = function (baseNode, nodeChanges) {
 
   // In the interim, copy over the nodeType, nodeValue, childNodes, and attributes
   retObj.nodeName = baseNode.nodeName;
+  retObj.nodeType = baseNode.nodeType;
   retObj.nodeValue = baseNode.nodeValue;
   retObj.childNodes = baseNode.childNodes;
   retObj.attributes = baseNode.attributes;

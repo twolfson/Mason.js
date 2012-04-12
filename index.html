@@ -34,7 +34,7 @@
       height: 0;
       line-hieght: 0;
     }
-    
+
     #demoDropdowExpandButton,
     #demoDropdowCollapseButton {
       margin-left: 5px;
@@ -132,49 +132,66 @@
       padding-top: 6px;
     }
   </style>
-  <script type="text/Mason">
-    <codedemo>
-      <tabs id="demoTabs">
-        <tab>
-          <text>Tab 1</text>
-          <content>This is tab 1's content</content>
-        </tab>
-        <tab>
-          <text>Tab 2</text>
-          <content>This is tab 2's content</content>
-        </tab>
-        <tab>
-          <text>Tab 3</text>
-          <content>This is tab 3's content</content>
-        </tab>
-      </tabs>
-      <button id="demoTabsFirstButton">Select first tab</button>
-      <button id="demoTabsNextButton">Select next tab</button>
-    </codedemo>
-  </script>
-  <script>
-    // Attempt to process the scripts on the page
-    Mason.processScripts();
-    
-    // Add console hooks
-    var demoTabs = document.getElementById('demoTabs'),
-        $demoTabs = $(demoTabs);
-    // TODO: Messages are firing at inverse timings -- need to switch over to render/statechange separation
-    $demoTabs.on('change', function () {
-      // Note: There is no type coercion here, the value is a number not a string
-      dhtmlx.message('Changed to Tab ' + (demoTabs.value + 1));
-    });
-    
-    // Add button bindings
-    $('#demoTabsFirstButton').on('click', function () {
-      demoTabs.changeTab(0);
-    });
-    $('#demoTabsNextButton').on('click', function () {
-      var tabIndex = demoTabs.value,
-          nextIndex = (tabIndex + 1) % demoTabs.tabLength;
-      demoTabs.changeTab(nextIndex);
-    });
-  </script>
+  <div class="demoRow">
+    <script type="text/Mason">
+      <codedemo>
+        <tabs id="demoTabs">
+          <tab>
+            <text>Tab 1</text>
+            <content>This is tab 1's content</content>
+          </tab>
+          <tab>
+            <text>Tab 2</text>
+            <content>This is tab 2's content</content>
+          </tab>
+          <tab>
+            <text>Tab 3</text>
+            <content>This is tab 3's content</content>
+          </tab>
+        </tabs>
+        <button id="demoTabsFirstButton">Select first tab</button>
+        <button id="demoTabsNextButton">Select next tab</button>
+      </codedemo>
+    </script>
+    <script>
+      // Attempt to process the scripts on the page
+      Mason.processScripts();
+
+      // Add console hooks
+      var demoTabs = document.getElementById('demoTabs'),
+          $demoTabs = $(demoTabs);
+      // TODO: Messages are firing at inverse timings -- need to switch over to render/statechange separation
+      $demoTabs.on('change', function () {
+        // Note: There is no type coercion here, the value is a number not a string
+        dhtmlx.message('Changed to Tab ' + (demoTabs.value + 1));
+      });
+
+      // Add button bindings
+      $('#demoTabsFirstButton').on('click', function () {
+        demoTabs.changeTab(0);
+      });
+      $('#demoTabsNextButton').on('click', function () {
+        var tabIndex = demoTabs.value,
+            nextIndex = (tabIndex + 1) % demoTabs.tabLength;
+        demoTabs.changeTab(nextIndex);
+      });
+    </script>
+  </div>
+
+  <h2>Shape Module (for testing)</h2>
+  <script src="Mason_modules/shape_module.js"></script>
+  <link rel="stylesheet" type="text/css" href="Mason_modules/shape_module.css" />
+  <div class="demoRow">
+    <script type="text/Mason">
+      <codedemo>
+        <shape color="red" shape="square"></shape>
+      </codedemo>
+    </script>
+    <script>
+      // Attempt to process the scripts on the page
+      Mason.processScripts();
+    </script>
+  </div>
 
 
   <script src="https://raw.github.com/twolfson/File-Watcher/master/src/watcher.js"></script>
