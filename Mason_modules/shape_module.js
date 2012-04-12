@@ -6,11 +6,9 @@ Mason.addModule('square', function (square) {
       $retSquare = $(retSquare),
       attrs = square.attributes,
       attr,
+      attrName,
       i = 0,
       len = attrs.length;
-
-  // Set up all of the attribute
-  Mason.setAttributes(retSquare, square);
 
   // Set the styles for the square
   var squareStyle = retSquare.style;
@@ -24,9 +22,14 @@ Mason.addModule('square', function (square) {
   // Iterate the attributes of the square
   for (; i < len; i++) {
     attr = attrs[i];
+    attrName = attr.nodeName;
 
-    if (attr.nodeName === 'color') {
+    // If the attribute is a color, set it up in the state
+    if (attrName === 'color') {
       state.color = attr.nodeValue;
+    } else {
+    // Otherwise, set it as a normal attribute
+      retSquare.setAttribute(attrName, attr.nodeValue);
     }
   }
 
