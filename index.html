@@ -180,16 +180,54 @@
 
   <h2>Shape Module (for testing)</h2>
   <script src="Mason_modules/shape_module.js"></script>
-  <link rel="stylesheet" type="text/css" href="Mason_modules/shape_module.css" />
+  <style>
+    #demoSquare {
+      float: left;
+      margin-right: 5px;
+    }
+  </style>
   <div class="demoRow">
     <script type="text/Mason">
       <codedemo>
-        <shape color="red" shape="square"></shape>
+        <square id="demoSquare" color="red"></square>
+        <button id="demoSquareColorCycle">Click to cycle colors</button>
+        <button id="demoSquareColorSet">Change color to &quot;aqua&quot;</button>
       </codedemo>
     </script>
     <script>
       // Attempt to process the scripts on the page
       Mason.processScripts();
+
+      // Grab the color square
+      var demoSquare = document.getElementById('demoSquare'),
+          $demoSquare = $(demoSquare),
+          demoSquareColorMap = {
+            'red': 'blue',
+            'blue': 'yellow',
+            'yellow': 'papayaWhip',
+            'papayaWhip': '#BADA55',
+            '#BADA55': 'red'
+          };
+
+      // When the color cycle button is clicked on, cycle the color
+      $('#demoSquareColorCycle').on('click', function () {
+        var color = demoSquare.value.color,
+            nextColor = demoSquareColorMap[color] || 'red';
+
+        demoSquare.color(nextColor);
+      });
+
+      // When the color set button is clicked on, set the color
+      $('#demoSquareColorSet').on('click', function () {
+        demoSquare.color('aqua');
+      });
+
+
+      // Whenever a color change event occurs
+      $demoSquare.on('colorchange', function () {
+        // Log the change
+        dhtmlx.message('Changed to color ' + (demoSquare.value.color));
+      });
     </script>
   </div>
 

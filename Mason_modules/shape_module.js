@@ -3,7 +3,7 @@ Mason.addModule('square', function (square) {
   // Create our square
   var state = {'color': 'red'},
       retSquare = document.createElement('div'),
-      $retSquare = $(retSquare),
+      $retSquare = new DOMNormalizer(retSquare),
       attrs = square.attributes,
       attr,
       attrName,

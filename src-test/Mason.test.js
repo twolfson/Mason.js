@@ -77,50 +77,52 @@ suite.addBatch({
 
 // Third batch: Advanced
 suite.addBatch({
-  'A custom module (dropdown)': {
+  'A custom module (square)': {
     'when used': {
       topic: function () {
         // TODO: Include some line breaks and carriage returns for realism
-        var dropdownStr = '<dropdown id="TESTdropdown"><text>My Dropdown</text><option>Option 1</option><option>Option 2</option><option>Option 3</option></dropdown>',
-            docFrag = Mason(dropdownStr);
+        var squareStr = '<square id="TESTsquare" color="blue"></square>',
+            docFrag = Mason(squareStr);
         sandbox.appendChild(docFrag);
-        var dropdown = document.getElementById('TESTdropdown');
-        
-        return dropdown;
+        var square = document.getElementById('TESTsquare');
+        return square;
       },
-      'creates the expected item': function (dropdown) {
-        assert(dropdown);
+      'creates the expected item': function (square) {
+        assert(square);
       },
-      // TODO: Add listeners to dropdown OR use tabs
-      'reacts to custom events': 'a' || function (dropdown) {
-        var $dropdown = new DOMNormalizer(dropdown),
-            list = dropdown.getElementsByTagName('ul')[0];
-
-        assert(list.style.display === 'none');
-        $dropdown.trigger('expand');
-
-        assert(list.style.display !== 'none');
+      'has a non-standard value (object)': function (square) {
+        assert(typeof square.value === 'object');
       },
-      'fires custom events': 'TODO: Figure out how to do the "click". Probably need a Selenium =/',
-      'has a non-standard value (object)': '',
-      'has a direct non-standard methods': function (dropdown) {
-        var list = dropdown.getElementsByTagName('ul')[0];
+      'reacts to custom events': function (square) {
+        var $square = new DOMNormalizer(square);
 
-        // Make sure there is a expand and collapse function
-        assert(dropdown.expand);
-        assert(dropdown.collapse);
+        assert(square.value.color !== 'red');
+        $square.trigger('setcolor', 'red');
 
-        // Collapse the dropdown and make sure it worked
-        dropdown.collapse();
-        assert(list.style.display === 'none');
+        assert(square.value.color !== 'red');
+      },
+      'supports direct non-standard methods': function (square) {
+        assert(square.value.color !== 'green');
+        assert(square.color);
 
-        // Expand the dropdown and make sure it worked
-        dropdown.expand();
-        assert(list.style.display !== 'none');
+        square.color('green');
 
-        // Double verify the collapse
-        dropdown.collapse();
-        assert(list.style.display === 'none');
+        assert(square.value.color === 'green');
+      },
+      'fires custom events': function (square) {
+        // TODO: This may require async failing
+        var eventOccurred = false,
+            $square = new DOMNormalizer(square);
+
+        assert(square.value.color !== 'magenta');
+
+        $square.on('colorchange', function () {
+          eventOccurred = true;
+        });
+
+        square.color('magenta');
+
+        assert(eventOccurred);
       }
     }
   }
