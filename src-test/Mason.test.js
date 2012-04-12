@@ -76,7 +76,6 @@ suite.addBatch({
 });
 
 // Third batch: Advanced
-// TODO: TEST ME FIRST
 suite.addBatch({
   'A custom module (dropdown)': {
     'when used': {
@@ -103,7 +102,7 @@ suite.addBatch({
         assert(list.style.display !== 'none');
       },
       'fires custom events': 'TODO: Figure out how to do the "click". Probably need a Selenium =/',
-      'has a non-standard value (array)': '',
+      'has a non-standard value (object)': '',
       'has a direct non-standard methods': function (dropdown) {
         var list = dropdown.getElementsByTagName('ul')[0];
 
