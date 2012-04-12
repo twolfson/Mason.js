@@ -34,7 +34,7 @@
       height: 0;
       line-hieght: 0;
     }
-    
+
     #demoDropdowExpandButton,
     #demoDropdowCollapseButton {
       margin-left: 5px;
@@ -132,49 +132,104 @@
       padding-top: 6px;
     }
   </style>
-  <script type="text/Mason">
-    <codedemo>
-      <tabs id="demoTabs">
-        <tab>
-          <text>Tab 1</text>
-          <content>This is tab 1's content</content>
-        </tab>
-        <tab>
-          <text>Tab 2</text>
-          <content>This is tab 2's content</content>
-        </tab>
-        <tab>
-          <text>Tab 3</text>
-          <content>This is tab 3's content</content>
-        </tab>
-      </tabs>
-      <button id="demoTabsFirstButton">Select first tab</button>
-      <button id="demoTabsNextButton">Select next tab</button>
-    </codedemo>
-  </script>
-  <script>
-    // Attempt to process the scripts on the page
-    Mason.processScripts();
-    
-    // Add console hooks
-    var demoTabs = document.getElementById('demoTabs'),
-        $demoTabs = $(demoTabs);
-    // TODO: Messages are firing at inverse timings -- need to switch over to render/statechange separation
-    $demoTabs.on('change', function () {
-      // Note: There is no type coercion here, the value is a number not a string
-      dhtmlx.message('Changed to Tab ' + (demoTabs.value + 1));
-    });
-    
-    // Add button bindings
-    $('#demoTabsFirstButton').on('click', function () {
-      demoTabs.changeTab(0);
-    });
-    $('#demoTabsNextButton').on('click', function () {
-      var tabIndex = demoTabs.value,
-          nextIndex = (tabIndex + 1) % demoTabs.tabLength;
-      demoTabs.changeTab(nextIndex);
-    });
-  </script>
+  <div class="demoRow">
+    <script type="text/Mason">
+      <codedemo>
+        <tabs id="demoTabs">
+          <tab>
+            <text>Tab 1</text>
+            <content>This is tab 1's content</content>
+          </tab>
+          <tab>
+            <text>Tab 2</text>
+            <content>This is tab 2's content</content>
+          </tab>
+          <tab>
+            <text>Tab 3</text>
+            <content>This is tab 3's content</content>
+          </tab>
+        </tabs>
+        <button id="demoTabsFirstButton">Select first tab</button>
+        <button id="demoTabsNextButton">Select next tab</button>
+      </codedemo>
+    </script>
+    <script>
+      // Attempt to process the scripts on the page
+      Mason.processScripts();
+
+      // Add console hooks
+      var demoTabs = document.getElementById('demoTabs'),
+          $demoTabs = $(demoTabs);
+      // TODO: Messages are firing at inverse timings -- need to switch over to render/statechange separation
+      $demoTabs.on('change', function () {
+        // Note: There is no type coercion here, the value is a number not a string
+        dhtmlx.message('Changed to Tab ' + (demoTabs.value + 1));
+      });
+
+      // Add button bindings
+      $('#demoTabsFirstButton').on('click', function () {
+        demoTabs.changeTab(0);
+      });
+      $('#demoTabsNextButton').on('click', function () {
+        var tabIndex = demoTabs.value,
+            nextIndex = (tabIndex + 1) % demoTabs.tabLength;
+        demoTabs.changeTab(nextIndex);
+      });
+    </script>
+  </div>
+
+  <h2>Shape Module (for testing)</h2>
+  <script src="Mason_modules/shape_module.js"></script>
+  <style>
+    #demoSquare {
+      float: left;
+      margin-right: 5px;
+    }
+  </style>
+  <div class="demoRow">
+    <script type="text/Mason">
+      <codedemo>
+        <square id="demoSquare" color="red"></square>
+        <button id="demoSquareColorCycle">Click to cycle colors</button>
+        <button id="demoSquareColorSet">Change color to &quot;aqua&quot;</button>
+      </codedemo>
+    </script>
+    <script>
+      // Attempt to process the scripts on the page
+      Mason.processScripts();
+
+      // Grab the color square
+      var demoSquare = document.getElementById('demoSquare'),
+          $demoSquare = $(demoSquare),
+          demoSquareColorMap = {
+            'red': 'blue',
+            'blue': 'yellow',
+            'yellow': 'papayaWhip',
+            'papayaWhip': '#BADA55',
+            '#BADA55': 'red'
+          };
+
+      // When the color cycle button is clicked on, cycle the color
+      $('#demoSquareColorCycle').on('click', function () {
+        var color = demoSquare.value.color,
+            nextColor = demoSquareColorMap[color] || 'red';
+
+        demoSquare.color(nextColor);
+      });
+
+      // When the color set button is clicked on, set the color
+      $('#demoSquareColorSet').on('click', function () {
+        demoSquare.color('aqua');
+      });
+
+
+      // Whenever a color change event occurs
+      $demoSquare.on('colorchange', function () {
+        // Log the change
+        dhtmlx.message('Changed to color ' + (demoSquare.value.color));
+      });
+    </script>
+  </div>
 
 
   <script src="https://raw.github.com/twolfson/File-Watcher/master/src/watcher.js"></script>

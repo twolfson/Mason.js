@@ -11,10 +11,11 @@
     that[name] = definition;
   }
 }('Mason', (function () {
-var ELEMENT_NODE_VAL = Node.ELEMENT_NODE,
-    TEXT_NODE_VAL = Node.TEXT_NODE,
-    DOCUMENT_NODE_VAL = Node.DOCUMENT_NODE,
-    DOCUMENT_FRAG_VAL = Node.DOCUMENT_FRAGMENT_NODE;
+var Node = window.Node || {},
+    ELEMENT_NODE_VAL = Node.ELEMENT_NODE || 1,
+    TEXT_NODE_VAL = Node.TEXT_NODE || 3,
+    DOCUMENT_NODE_VAL = Node.DOCUMENT_NODE || 9,
+    DOCUMENT_FRAG_VAL = Node.DOCUMENT_FRAGMENT_NODE || 11;
 
 /**
  * Mason function that takes arrays of HTML objects and converts them into HTMLElements
@@ -249,9 +250,17 @@ Mason.mergeNode = function (baseNode, nodeChanges) {
   var retObj = {},
       key;
 
-  for (key in baseNode) {
-    retObj[key] = baseNode[key];
-  }
+  // FIXME: IE6/7 dislikes this since it is iterating a Node directly
+  // for (key in baseNode) {
+    // retObj[key] = baseNode[key];
+  // }
+
+  // In the interim, copy over the nodeType, nodeValue, childNodes, and attributes
+  retObj.nodeName = baseNode.nodeName;
+  retObj.nodeType = baseNode.nodeType;
+  retObj.nodeValue = baseNode.nodeValue;
+  retObj.childNodes = baseNode.childNodes;
+  retObj.attributes = baseNode.attributes;
 
   for (key in nodeChanges) {
     retObj[key] = nodeChanges[key];
