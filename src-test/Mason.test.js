@@ -151,9 +151,41 @@ suite.addBatch({
       'and work properly after': ''
     }
   },
-  'when use modules is disabled': {
-    'and a would-be custom tag is being rendered': {
-      'it is rendered as a normal tag': ''
+  'A module based tag': {
+    topic: function () {
+      Mason.addModule('hr', function (hr) {
+        var div = Mason.mergeNode(hr, {'nodeName': 'div'});
+        // TODO: Add 'hr' class
+        return Mason(div);
+      });
+    },
+    'rendered when useModules is enabled': {
+      topic: function () {
+        var tag = '<hr id="hrViaModule">a</hr>';
+        return Mason(tag, {'useModules': true});
+      },
+      'is processed by the module': function (docFrag) {
+        var sandbox = document.getElementById('TESTsandbox');
+        sandbox.appendChild(docFrag);
+
+        var tag = document.getElementById('hrViaModule');
+        assert(tag);
+        assert(tag.nodeName.toLowerCase() !== 'hr');
+      }
+    },
+    'rendered when useModules is disabled': {
+      topic: function () {
+        var tag = '<hr id="hrSansModule">a</hr>';
+        return Mason(tag, {'useModules': false});
+      },
+      'is processed as a normal tag': function (docFrag) {
+        var sandbox = document.getElementById('TESTsandbox');
+        sandbox.appendChild(docFrag);
+
+        var tag = document.getElementById('hrSansModule');
+        assert(tag);
+        assert(tag.nodeName.toLowerCase() === 'hr');
+      }
     }
   }
 });
