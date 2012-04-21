@@ -110,7 +110,6 @@ suite.addBatch({
         assert(square.value.color === 'green');
       },
       'fires custom events': function (square) {
-        // TODO: This may require async failing
         var eventOccurred = false,
             $square = new DOMNormalizer(square);
 

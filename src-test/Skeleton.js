@@ -1,4 +1,5 @@
 // TODO: Step back from vows and review perspective (i.e. what is the golden BDD engine?)
+// TODO: async() will set an async flag on functions themselves and pass through a this.callback handler
 (function () {
 /**
  * Constructor for a Skeleton (test suite)
