@@ -19,3 +19,9 @@ I will finish this later. Sorry guys...
 API
 ===============
 I will finish this later. Sorry guys...
+
+Tested in
+=========
+- FF 10
+- IE 7
+- [Test it in your browser](http://twolfson.github.com/Mason.js/src-test/Mason.test.html)
