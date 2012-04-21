@@ -91,8 +91,12 @@ suite.addBatch({
   },
   'A standard module tag (&lt;table&gt;)': {
     topic: function () {
-      Mason.addModule('table', function () {
-        // TODO: Write out module
+      Mason.addModule('table', function (table) {
+        var div = Mason.mergeNode(table, {'nodeName': 'div'});
+        // TODO: Solve this problem x_x
+        // div.attributes = [].slice.call(div.attributes || []);
+        // div.attributes.push({'nodeName': 'className', 'nodeValue': 'table'});
+        return Mason(div);
       });
       return '<table id="myTable">round</table>';
     },
@@ -106,15 +110,16 @@ suite.addBatch({
 
         var tag = document.getElementById('myTable');
         assert(tag);
-        assert(tag.nodeName.toLowerCase() === 'table');
         assert(tag.innerHTML === 'round');
       }
     }
   },
   'A non-standard module tag (&lt;spring&gt;)': {
     topic: function () {
-      Mason.addModule('spring', function () {
-        // TODO: Write out module
+      Mason.addModule('spring', function (spring) {
+        var div = Mason.mergeNode(spring, {'nodeName': 'div'});
+        // TODO: Add 'spring' class
+        return Mason(div);
       });
       return '<spring id="sproing">sprung</spring>';
     },
@@ -128,7 +133,6 @@ suite.addBatch({
 
         var tag = document.getElementById('sproing');
         assert(tag);
-        assert(tag.nodeName.toLowerCase() === 'spring');
         assert(tag.innerHTML === 'sprung');
       }
     }
