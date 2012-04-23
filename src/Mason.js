@@ -83,7 +83,7 @@ function Mason(htmlArr, options) {
           Mason.setAttributes(elt, node);
 
           // Create and append any children if available
-          Mason.appendChildren(elt, node);
+          Mason.appendChildren(elt, node, options);
         }
         break;
       case TEXT_NODE_VAL:
@@ -198,13 +198,14 @@ Mason.setAttributes = function (elt, node) {
  * @param {HTMLElement} elt Element to set attributes on
  * @param {Object} node HTML object to set attributes from.
  * @param {Object[]} node.childNodes Array of HTML objects to render and append to the element. If not specified, node falls back as childNodes
+ * @param {Object} options See Mason options parameter
  */
-Mason.appendChildren = function (elt, node) {
+Mason.appendChildren = function (elt, node, options) {
   var childNodes = node.childNodes || node,
       childFrag;
   if (childNodes !== undefined) {
     // Render the child nodes
-    childFrag = Mason(childNodes);
+    childFrag = Mason(childNodes, options);
 
     // and append them to this node
     elt.appendChild(childFrag);
