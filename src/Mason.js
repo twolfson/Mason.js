@@ -224,8 +224,6 @@ Mason.appendChildren = function (elt, node, options) {
  * @param {String} data String of XML to read through
  * @returns {Document} Document object containing the parsed XML
  */
-// TODO: Reduce the overkill being done by this and potential side-effects of using XML
-// Found potential issue: standalone attributes (e.g. selected)
 Mason.parseXML = function (data) {
   var xml,
       parser;

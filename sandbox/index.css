@@ -1,0 +1,31 @@
+div {
+  margin-bottom: 20px;
+}
+
+/* TODO: Resize for mini */
+.tabRow {
+  display: block;
+  border-bottom: 1px solid #000;
+}
+
+.tabRow:after {
+  display: block;
+  clear: both;
+  content: ".";
+  height: 0;
+  line-height: 0;
+  visibility: hidden;
+}
+
+.tab {
+  float: left;
+  margin-left: 5px;
+  margin-bottom: -1px;
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+
+.tab.isSelected {
+  border: 1px solid #000;
+  border-bottom: 1px solid #FFF;
+}
