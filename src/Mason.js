@@ -229,6 +229,15 @@ Mason.appendChildren = function (elt, node, options) {
 Mason.parseXML = function (data) {
   var xml,
       parser;
+
+  // Wrap the data in a document node
+  data = '<xml>' + data + '</xml>';
+
+  // If Resig's escaper exist, use it
+  if (window.HTMLtoXML) {
+    data = HTMLtoXML(data);
+  }
+
   try {
     // In standard browsers, use the DOMParser
     if (window.DOMParser) {
@@ -249,7 +258,7 @@ Mason.parseXML = function (data) {
   if (!xml || !xml.documentElement) {
     throw new Error('Invalid XML: ' + data);
   }
-  
+
   // Collect the deep errors
   var parseerrors = xml.getElementsByTagName('parsererror'),
       errors = [],
@@ -258,14 +267,14 @@ Mason.parseXML = function (data) {
   for (; i < len; i++) {
     errors.push(parseerrors[i].textContent);
   }
-  
+
   // If there were deep errors, throw them nicely
   if (len > 0) {
     throw new Error(errors.join('\n'));
   }
 
-  // Return the xml
-  return xml;
+  // Return the collection of the wrapped document
+  return xml.childNodes[0];
 }
 
 /**
