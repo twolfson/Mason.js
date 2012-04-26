@@ -3,7 +3,9 @@
       exports = window.exports,
       that = this || window;
   if (typeof define === 'function') {
-    define(definition);
+    define(function () {
+      return definition;
+    });
   } else if (typeof window.exports !== 'undefined') {
     exports[name] = definition;
   } else {
