@@ -17,6 +17,7 @@ var Node = window.Node || {},
     DOCUMENT_NODE_VAL = Node.DOCUMENT_NODE || 9,
     DOCUMENT_FRAG_VAL = Node.DOCUMENT_FRAGMENT_NODE || 11;
 
+// TODO: If there is a single object, return the element and not the document fragment? For consistency's sake, make this an option
 /**
  * Mason function that takes arrays of HTML objects and converts them into HTMLElements
  * @param {String|Object|Object[]} htmlArr String of HTML, single HTML objects, or array of HTML objects to convert
@@ -280,6 +281,7 @@ Mason.replaceNode = function (newNode, origNode) {
   parentNode.replaceChild(newNode, origNode);
 };
 
+// TODO: Either delete processPage or move it to an auxilary file
 /**
  * Method to initiate and replace any nodes that have the attribute 'data-mason'
  * @param {Object} options Options to run Mason with (see Mason)
@@ -336,11 +338,13 @@ Mason.processScripts = function (options) {
   }
 };
 
+// TODO: Is this used anywhere
 /**
  * Filter method for text nodes from the top level of a collection
  * @param {Object[]} htmlArr Array of HTML objects
  * @returns {Object[]} Filtered array of HTML objects
  */
+//
 Mason.filterTextNodes = function (htmlArr) {
   var retArr = [],
       i = 0,
@@ -355,6 +359,31 @@ Mason.filterTextNodes = function (htmlArr) {
   }
 
   return retArr;
+}
+
+/**
+ * Sugar method for creation of a new node
+ * @param {String} nodeName Name of the node to create
+ * @param {Object} [baseNode] Optional baseNode to collect attributes and childNodes from
+ * @returns {Object} Returns HTML node for easy .setAttribute-ing
+ */
+// TODO: Use and test me
+Mason.createNode = function (nodeName, baseNode) {
+  // Create a standard element node for parsing by Mason
+  var parseNode = {'nodeName': nodeName, 'nodeType': ELEMENT_NODE_VAL};
+
+  // If there is a baseNode, merge it in
+  if (baseNode) {
+    parseNode = Mason.mergeNode(parseNode, baseNode);
+  }
+
+  // Create an element via Mason
+  var retFrag = Mason(parseNode),
+  // Shuck it from Mason
+      retNode = retFrag.childNodes[0];
+
+  // Return the element
+  return retNode;
 }
 
 return Mason;
