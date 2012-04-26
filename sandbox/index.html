@@ -1,0 +1,25 @@
+<!doctype>
+<html>
+<head>
+  <title>Ensighten Modules</title>
+</head>
+<body>
+  <script data-main="index" src="../requirejs/require.js"></script>
+  <script>
+    require([
+      'https://raw.github.com/twolfson/File-Watcher/master/src/watcher.js', 
+      'https://raw.github.com/twolfson/Resource-Collector/master/src/collector.js'], function (FileWatcher, ResourceCollector) {
+      if (location.hostname !== 'localhost') {
+        return;
+      }
+
+       var watcher = new FileWatcher(),
+           resources = ResourceCollector.collect();
+       watcher.addListener(function () {
+         location.reload();
+       });
+       watcher.watch(resources);
+    });
+  </script>
+</body>
+</html>
