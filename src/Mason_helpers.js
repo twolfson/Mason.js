@@ -101,4 +101,26 @@ Mason.processScripts = function (options) {
     }
   }
 };
+
+/**
+ * Filter method for text nodes from the top level of a collection
+ * @param {Object[]} htmlArr Array of HTML objects
+ * @returns {Object[]} Filtered array of HTML objects
+ */
+// If you are using this, you probably meant .trim which would be a function that removes whitespace text nodes on the left and right edges of an array
+Mason.filterTextNodes = function (htmlArr) {
+  var retArr = [],
+      i = 0,
+      len = htmlArr.length,
+      node;
+
+  for (; i < len; i++) {
+    node = htmlArr[i];
+    if (node.nodeType !== TEXT_NODE_VAL) {
+      retArr.push(node);
+    }
+  }
+
+  return retArr;
+};
 }());
