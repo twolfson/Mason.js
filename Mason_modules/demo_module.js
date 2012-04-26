@@ -101,7 +101,7 @@ DOMNormalizer.prototype = (function () {
           method.call(elt, event);
         }
       };
-   
+
   function compareEvtObj(a, b) {
     return (a.name === b.name && a.fn === b.fn);
   }
@@ -309,10 +309,8 @@ Mason.addModuleBatch({
 
       // If the node is a 'text' node, generate it as a part of the head row
       if (childNode.nodeName === 'text') {
-        // Override the textNode's type to a span
-        var spanNode = Mason.mergeNode(childNode, {'nodeName': 'span'}),
-        // Create its default text via Mason
-            defaultText = Mason(spanNode);
+        // Re-create the "text" node as a span
+        var defaultText = Mason.createNode('span', childNode);
 
         // Insert the default text into the head row
         headRow.appendChild(defaultText);

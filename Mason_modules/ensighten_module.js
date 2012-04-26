@@ -4,8 +4,8 @@ Mason.addModuleBatch({
     // Collect the child nodes and their lengths
     var tabNodes = tabs.childNodes || [];
 
-    // Filter out all textNodes
-    tabNodes = Mason.filterTextNodes(tabNodes);
+    // Filter out edge textNodes
+    tabNodes = Mason.trim(tabNodes);
 
     // Set up the remaining variables
     var i = 0,

@@ -1,4 +1,3 @@
-// TODO: Reorganize Mason methods
 (function (name, definition) {
   var define = window.define,
       exports = window.exports,
@@ -17,7 +16,6 @@ var Node = window.Node || {},
     DOCUMENT_NODE_VAL = Node.DOCUMENT_NODE || 9,
     DOCUMENT_FRAG_VAL = Node.DOCUMENT_FRAGMENT_NODE || 11;
 
-// TODO: If there is a single object, return the element and not the document fragment? For consistency's sake, make this an option
 /**
  * Mason function that takes arrays of HTML objects and converts them into HTMLElements
  * @param {String|Object|Object[]} htmlArr String of HTML, single HTML objects, or array of HTML objects to convert
@@ -32,7 +30,6 @@ var Node = window.Node || {},
  * @param {Boolean} [options.useModules=true] Flag to use modules while parsing
  * @param {Boolean} [options.returnFirst=false] Flag to return the first item without the document fragment wrapping
  */
- var stopLogging = 0;
 function Mason(htmlArr, options) {
   var nodeType = htmlArr.nodeType;
   // If the input is a string
@@ -228,41 +225,56 @@ Mason.appendChildren = function (elt, node, options) {
 // TODO: Reduce the overkill being done by this and potential side-effects of using XML
 // Found potential issue: standalone attributes (e.g. selected)
 Mason.parseXML = function (data) {
-  var xml, tmp;
+  var xml,
+      parser;
   try {
-    if ( window.DOMParser ) { // Standard
-      tmp = new DOMParser();
-      xml = tmp.parseFromString( data , "text/xml" );
-    } else { // IE
-      xml = new ActiveXObject( "Microsoft.XMLDOM" );
-      xml.async = "false";
-      xml.loadXML( data );
+    // In standard browsers, use the DOMParser
+    if (window.DOMParser) {
+      parser = new DOMParser();
+      xml = parser.parseFromString(data , 'text/xml');
+    } else {
+    // Otherwise, attempt to use IE's XMLDOM parser
+      xml = new ActiveXObject('Microsoft.XMLDOM');
+      xml.async = 'false';
+      xml.loadXML(data);
     }
-  } catch( e ) {
-    xml = undefined;
+  } catch (e) {
+    // If an error occurs, erase the XML
+    xml = null;
   }
 
-  if ( !xml || !xml.documentElement || xml.getElementsByTagName( "parsererror" ).length ) {
+  // If there is no xml or no document element was created, throw an error
+  if (!xml || !xml.documentElement) {
     throw new Error('Invalid XML: ' + data);
   }
+  
+  // Collect the deep errors
+  var parseerrors = xml.getElementsByTagName('parsererror'),
+      errors = [],
+      i = 0,
+      len = parseerrors.length;
+  for (; i < len; i++) {
+    errors.push(parseerrors[i].textContent);
+  }
+  
+  // If there were deep errors, throw them nicely
+  if (len > 0) {
+    throw new Error(errors.join('\n'));
+  }
 
+  // Return the xml
   return xml;
 }
 
 /**
  * Shallow merge utility for Mason (object extension utility -- not application specific)
- * @param {Object} baseNode Base node to copy from
  * @param {Object} nodeChanges Changes to apply to the node
+ * @param {Object} baseNode Base node to copy from
  * @returns {Object} Object with baseNode properties overriden with nodeChanges properties
  */
-Mason.mergeNode = function (baseNode, nodeChanges) {
+function mergeNode(nodeChanges, baseNode) {
   var retObj = {},
       key;
-
-  // FIXME: IE6/7 dislikes this since it is iterating a Node directly
-  // for (key in baseNode) {
-    // retObj[key] = baseNode[key];
-  // }
 
   // In the interim, copy over the nodeType, nodeValue, childNodes, and attributes
   retObj.nodeName = baseNode.nodeName;
@@ -279,96 +291,7 @@ Mason.mergeNode = function (baseNode, nodeChanges) {
 
   return retObj;
 };
-
-/**
- * Node replacement utility
- * @param {Node} newNode Node to replace origNode with
- * @param {Node} origNode Node to be replaced
- */
-Mason.replaceNode = function (newNode, origNode) {
-  var parentNode = origNode.parentNode;
-  parentNode.replaceChild(newNode, origNode);
-};
-
-// TODO: Either delete processPage or move it to an auxilary file
-/**
- * Method to initiate and replace any nodes that have the attribute 'data-mason'
- * @param {Object} options Options to run Mason with (see Mason)
- */
-Mason.processPage = function (options) {
-  // Get all elements from the page
-  var pageElts = document.getElementsByTagName('*') || [],
-  // Copy over all elements into an array instead of using an active DOM collection
-      elts = [].slice.call(pageElts),
-      elt,
-      i = 0,
-      len = elts.length,
-      htmlFrag;
-
-  // Iterate the elements
-  for (; i < len; i++) {
-    elt = elts[i];
-
-    // If the type matches text/Mason, process it
-    if (elt.hasAttribute('data-mason')) {
-      htmlFrag = Mason(elt, options);
-      Mason.replaceNode(htmlFrag, elt);
-    }
-  }
-};
-
-/**
- * Method to initiate and replace any 'script[type="text/Mason"]' tags in the page
- * @param {Object} options Options to run Mason with (see Mason)
- */
-Mason.masonScriptType = /^text\/Mason/i;
-Mason.processScripts = function (options) {
-  // Get all scripts from the page
-  var pageScripts = document.getElementsByTagName('script') || [],
-  // Copy over all scripts into an array instead of using an active DOM collection
-      scripts = [].slice.call(pageScripts),
-      script,
-      i = 0,
-      len = scripts.length,
-      typeRegexp = Mason.masonScriptType,
-      htmlString,
-      htmlFrag;
-
-  // Iterate the scripts
-  for (; i < len; i++) {
-    script = scripts[i];
-
-    // If the type matches text/Mason, process it
-    if (script.type.match(typeRegexp)) {
-      htmlString = script.innerHTML;
-      htmlFrag = Mason(htmlString, options);
-      Mason.replaceNode(htmlFrag, script);
-    }
-  }
-};
-
-// TODO: Is this used anywhere
-/**
- * Filter method for text nodes from the top level of a collection
- * @param {Object[]} htmlArr Array of HTML objects
- * @returns {Object[]} Filtered array of HTML objects
- */
-//
-Mason.filterTextNodes = function (htmlArr) {
-  var retArr = [],
-      i = 0,
-      len = htmlArr.length,
-      node;
-
-  for (; i < len; i++) {
-    node = htmlArr[i];
-    if (node.nodeType !== TEXT_NODE_VAL) {
-      retArr.push(node);
-    }
-  }
-
-  return retArr;
-}
+Mason.mergeNode = mergeNode;
 
 /**
  * Sugar method for creation of a new node
@@ -382,7 +305,7 @@ Mason.createNode = function (nodeName, baseNode) {
 
   // If there is a baseNode, merge it in
   if (baseNode) {
-    parseNode = Mason.mergeNode(baseNode, parseNode);
+    parseNode = mergeNode(parseNode, baseNode);
   }
 
   // Create an element via Mason
@@ -390,7 +313,7 @@ Mason.createNode = function (nodeName, baseNode) {
 
   // Return the element
   return retNode;
-}
+};
 
 return Mason;
 }())));
