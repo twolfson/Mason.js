@@ -21,7 +21,7 @@ define(['Mason', 'jquery', '../src/html_to_xml.js'], function (Mason) {
   }
 
   function _ifNotInternal(fn) {
-    if (this.internal === 0) {
+    if (!!this.internal) {
       var args = [].slice.call(arguments);
       fn.call(this, args);
     }
@@ -33,7 +33,6 @@ define(['Mason', 'jquery', '../src/html_to_xml.js'], function (Mason) {
 
     this.row = row;
     this.$row = $row;
-    this.tabs = [];
     this.$tabs = $empty;
     this.$selectedTab = $empty;
 
@@ -69,14 +68,15 @@ define(['Mason', 'jquery', '../src/html_to_xml.js'], function (Mason) {
       // Save the index as a property of the row
       this.row.selectedIndex = index;
 
-      // Deselect the last tab
-      this._internal(this.deselect);
-
       // Select the new tab
       this.$selectedTab = $selectedTab;
 
-      // Add a selected class to the current tab
+      // Add a selected class and property to the current tab
       $selectedTab.addClass('isSelected');
+      $selectedTab.prop('selected', true);
+
+      // Deselect the last tab
+      this._internal(this.deselect);
 
       // Fire onselect event on the selected tab
       $selectedTab.trigger('select');
@@ -95,8 +95,9 @@ define(['Mason', 'jquery', '../src/html_to_xml.js'], function (Mason) {
         this.$selectedTab = $empty;
       });
 
-      // Remove the class
+      // Remove the class and property
       $deselectedTab.removeClass('isSelected');
+      $deselectedTab.removeProp('selected');
 
       // Fire a deselect event
       $deselectedTab.trigger('deselect');
@@ -186,20 +187,20 @@ define(['Mason', 'jquery', '../src/html_to_xml.js'], function (Mason) {
         tabRowFrag = Mason(tabRowHtml),
     // TODO: Consider this part of the build chain?
         tabRow = tabRowFrag.childNodes;
-        
+
     // Test out some of the events
     $(tabRow).filter('.tabRow').on('change', function () {
       console.log('asdasd');
     });
-    
+
     $(tabRow).find('.tab').on('select', function () {
       console.log('woot');
     });
-    
+
     $(tabRow).find('.tab').on('deselect', function () {
       console.log('wasd');
     });
-    
+
     body.appendChild(tabRowFrag);
   });
 });
