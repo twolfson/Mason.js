@@ -28,9 +28,11 @@ var Node = window.Node || {},
  * @param {Object} [htmlArr[i].attributes[j].nodeName] Name of the attribute to set
  * @param {Object} [htmlArr[i].attributes[j].nodeValue] Value of the attribute to set
  * @param {Object[]} [htmlArr[i].childNodes] If the nodeType is a tag and not a module, these will be the children nodes to append to this node
- * @param {Object} options Options for Mason to render with
- * @param {Boolean} options.useModules Flag to use modules while parsing
+ * @param {Object} [options] Options for Mason to render with
+ * @param {Boolean} [options.useModules=true] Flag to use modules while parsing
+ * @param {Boolean} [options.returnFirst=false] Flag to return the first item without the document fragment wrapping
  */
+ var stopLogging = 0;
 function Mason(htmlArr, options) {
   var nodeType = htmlArr.nodeType;
   // If the input is a string
@@ -50,7 +52,11 @@ function Mason(htmlArr, options) {
 
   // Fallback and set up options for quick reference
   options = options || {};
-  var useModules = options.hasOwnProperty('useModules') ? options.useModules : true;
+  var useModules = options.hasOwnProperty('useModules') ? options.useModules : true,
+      returnFirst = options.returnFirst;
+
+  // Delete the returnFirst flag to prevent single node trees
+  delete options.returnFirst;
 
   // Create a document fragment (collection of HTMLElements) to return
   var retFrag = document.createDocumentFragment(),
@@ -100,7 +106,8 @@ function Mason(htmlArr, options) {
   }
 
   // Return the rendered fragment
-  return retFrag;
+  var retVal = returnFirst && len > 0 ? retFrag.childNodes[0] : retFrag;
+  return retVal;
 }
 
 // Static properties/methods for Mason
@@ -202,7 +209,7 @@ Mason.setAttributes = function (elt, node) {
  * @param {Object} options See Mason options parameter
  */
 Mason.appendChildren = function (elt, node, options) {
-  var childNodes = node.childNodes || node,
+  var childNodes = node.childNodes,
       childFrag;
   if (childNodes !== undefined) {
     // Render the child nodes
@@ -265,7 +272,9 @@ Mason.mergeNode = function (baseNode, nodeChanges) {
   retObj.attributes = baseNode.attributes;
 
   for (key in nodeChanges) {
-    retObj[key] = nodeChanges[key];
+    if (nodeChanges.hasOwnProperty(key)) {
+      retObj[key] = nodeChanges[key];
+    }
   }
 
   return retObj;
@@ -367,20 +376,17 @@ Mason.filterTextNodes = function (htmlArr) {
  * @param {Object} [baseNode] Optional baseNode to collect attributes and childNodes from
  * @returns {Object} Returns HTML node for easy .setAttribute-ing
  */
-// TODO: Use and test me
 Mason.createNode = function (nodeName, baseNode) {
   // Create a standard element node for parsing by Mason
   var parseNode = {'nodeName': nodeName, 'nodeType': ELEMENT_NODE_VAL};
 
   // If there is a baseNode, merge it in
   if (baseNode) {
-    parseNode = Mason.mergeNode(parseNode, baseNode);
+    parseNode = Mason.mergeNode(baseNode, parseNode);
   }
 
   // Create an element via Mason
-  var retFrag = Mason(parseNode),
-  // Shuck it from Mason
-      retNode = retFrag.childNodes[0];
+  var retNode = Mason(parseNode, {'returnFirst': true});
 
   // Return the element
   return retNode;

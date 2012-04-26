@@ -92,10 +92,8 @@ suite.addBatch({
   'A standard module tag (&lt;table&gt;)': {
     topic: function () {
       Mason.addModule('table', function (table) {
-        var div = Mason.mergeNode(table, {'nodeName': 'div'});
-        // TODO: Solve this problem x_x
-        // div.attributes = [].slice.call(div.attributes || []);
-        // div.attributes.push({'nodeName': 'className', 'nodeValue': 'table'});
+        var div = Mason.createNode('div', table);
+        div.className += ' table';
         return Mason(div);
       });
       return '<table id="myTable">round</table>';
@@ -111,14 +109,15 @@ suite.addBatch({
         var tag = document.getElementById('myTable');
         assert(tag);
         assert(tag.innerHTML === 'round');
+        assert(tag.className.indexOf('table') >= 0);
       }
     }
   },
   'A non-standard module tag (&lt;spring&gt;)': {
     topic: function () {
       Mason.addModule('spring', function (spring) {
-        var div = Mason.mergeNode(spring, {'nodeName': 'div'});
-        // TODO: Add 'spring' class
+        var div = Mason.createNode('div', spring);
+        div.className += ' spring';
         return Mason(div);
       });
       return '<spring id="sproing">sprung</spring>';
@@ -134,6 +133,7 @@ suite.addBatch({
         var tag = document.getElementById('sproing');
         assert(tag);
         assert(tag.innerHTML === 'sprung');
+        assert(tag.className.indexOf('spring') >= 0);
       }
     }
   }
@@ -151,13 +151,39 @@ suite.addBatch({
       'and work properly after': ''
     }
   },
+  'Mason': {
+    'can easily create a tag': {
+      'with no base node': function () {
+        var div = Mason.createNode('div'),
+            HTMLElement = window.HTMLElement;
+        assert(div);
+        assert(div.nodeName.toLowerCase() === 'div');
+        if (HTMLElement) {
+          assert(div instanceof HTMLElement);
+        }
+      },
+      'with a base node': function () {
+        var baseNode = document.createElement('span');
+        baseNode.innerHTML = 'hello';
+
+        var div = Mason.createNode('div', baseNode),
+            HTMLElement = window.HTMLElement;
+        assert(div);
+        assert(div.nodeName.toLowerCase() === 'div');
+        assert(div.innerHTML === 'hello');
+        if (HTMLElement) {
+          assert(div instanceof HTMLElement);
+        }
+      }
+    }
+  },
   'A module based tag': {
     topic: function () {
       // TODO: Mason dislikes processing hr's. Debug that.
       // Mason.addModule('hr', function (hr) {
       Mason.addModule('blockquote', function (blockquote) {
-        var div = Mason.mergeNode(blockquote, {'nodeName': 'div'});
-        // TODO: Add 'blockquote' class
+        var div = Mason.createNode('div', blockquote);
+        div.className += ' blockquote';
         return Mason(div);
       });
     },
@@ -173,6 +199,7 @@ suite.addBatch({
         var tag = document.getElementById('bqViaModule');
         assert(tag);
         assert(tag.nodeName.toLowerCase() !== 'blockquote');
+        assert(tag.className.indexOf('blockquote') >= 0);
       }
     },
     'rendered when useModules is disabled': {
@@ -187,6 +214,7 @@ suite.addBatch({
         var tag = document.getElementById('bqSansModule');
         assert(tag);
         assert(tag.nodeName.toLowerCase() === 'blockquote');
+        assert(tag.className.indexOf('blockquote') === -1);
       }
     }
   }
